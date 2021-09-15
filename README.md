@@ -1,1 +1,1 @@
-stegangraphy program
+steganography program
