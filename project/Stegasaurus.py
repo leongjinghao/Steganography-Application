@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter.filedialog import askopenfilename
+from tkinter import ttk
 import shutil
 import os
 import glob
@@ -9,10 +10,11 @@ from PIL import Image
 class GUI:
     background = 'lightgrey'
     test = 'white'
+    items = []
     def __init__(self):
 
         mainGUI = Tk(className='Steganography program')  # Sets window name
-        mainGUI.geometry("900x700+100+50")  # Sets window size
+        mainGUI.geometry("1100x700+100+50")  # Sets window size
         mainGUI.configure(bg=self.background) #Sets GUI background color
         mainGUI.resizable(width=True, height=True) #Disallows user from resizing the window.
         self.mainMenu(mainGUI)
@@ -48,16 +50,15 @@ class GUI:
         deleteButton.config(font=("Arial", 15))
         deleteButton.place(relx=0.35, rely=0.35, relheight=0.05, relwidth=0.1)
 
-        #View button
-        viewButton = Button(mainMenuFrame, text="View")
-        viewButton.config(font=("Arial", 15))
-        viewButton.place(relx=0.35, rely=0.5, relheight=0.05, relwidth=0.1)
-
         # View Radio button
         viewValue = StringVar(mainMenuFrame, "1")
         Radiobutton(mainMenuFrame, text='Payload', variable=viewValue, value='1', background=self.background).place(relx=0.5, rely=0.5, relheight=0.05, relwidth=0.1)
         Radiobutton(mainMenuFrame, text='Cover', variable=viewValue, value='2', background=self.background).place(relx=0.6, rely=0.5, relheight=0.05, relwidth=0.1)
 
+        #View button
+        viewButton = Button(mainMenuFrame, text="View", command=lambda: [mainMenuFrame.place_forget(), self.viewPage(mainGUI,viewValue.get())])
+        viewButton.config(font=("Arial", 15))
+        viewButton.place(relx=0.35, rely=0.5, relheight=0.05, relwidth=0.1)
 
         #Hide button
         hideButton = Button(mainMenuFrame, text="Hide payload",  command=lambda: [print(uploadValue.get(),deleteValue.get(),viewValue.get())])
@@ -113,9 +114,6 @@ class GUI:
                 os.remove(os.path.join(dir, f))
             print("All files deleted")
 
-
-
-
     def image(self):
         from PIL import Image
         x = 0
@@ -125,6 +123,52 @@ class GUI:
         width, height = im.size
         pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
         #print(pixels)
+
+    def viewPage(self, mainGUI, viewValue):
+        viewFrame = Frame(mainGUI, bg=self.background)
+        viewFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
+        if viewValue == "1":
+            title = Label(viewFrame,
+                                  text="View Payload Objects",
+                                  bg=self.background)
+        else:
+            title = Label(viewFrame,
+                                  text="View Cover Objects",
+                                  bg=self.background)
+
+
+        title.config(font=("MS Sans Serif", 40))
+        title.place(relx=0, rely=0, relheight=0.1, relwidth=1)
+
+
+
+        item_column = ('File Name','File Type')
+        itemList = ttk.Treeview(viewFrame,columns=item_column,show='headings')
+        for i in range(len(item_column)):
+            itemList.heading(item_column[i], text=item_column[i])
+
+        itemList.column(item_column[0], anchor="n", width=600)
+        itemList.column(item_column[1], anchor="n", width=70)
+        itemList.place(relx=0,rely=0.1, relheight=0.5, relwidth=1)
+
+        if viewValue == "1":
+            files = os.listdir('./payload')
+        else:
+            files = os.listdir('./cover')
+
+        for f in range(len(files)):
+            files[f] = files[f].split('.')
+
+
+        for i, column in enumerate(files, start=0):
+            itemList.insert("", 0, values=(files[i]))
+
+
+        backButton = Button(viewFrame, text="Back", command=lambda: [viewFrame.place_forget(), self.mainMenu(mainGUI)])
+        backButton.config(font=("Arial", 30))
+        backButton.place(relx=0.05, rely=0.85, relheight=0.1, relwidth=0.2)
+
+
 
 class Steganography:
     def __init__(self):
