@@ -114,15 +114,15 @@ class GUI:
                 os.remove(os.path.join(dir, f))
             print("All files deleted")
 
-    def image(self):
-        from PIL import Image
-        x = 0
-        y = 0
-        im = Image.open('test.tiff')  # Can be many different formats.
-        pixels = list(im.getdata())
-        width, height = im.size
-        pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
-        #print(pixels)
+    # def image(self):
+    #     from PIL import Image
+    #     x = 0
+    #     y = 0
+    #     im = Image.open('test.tiff')  # Can be many different formats.
+    #     pixels = list(im.getdata())
+    #     width, height = im.size
+    #     pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
+    #     #print(pixels)
 
     def viewPage(self, mainGUI, viewValue):
         viewFrame = Frame(mainGUI, bg=self.background)
