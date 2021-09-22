@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.filedialog import askopenfilename
 import shutil
 import os
+import glob
 
 from PIL import Image
 
@@ -36,16 +37,16 @@ class GUI:
         uploadButton.config(font=("Arial", 15))
         uploadButton.place(relx=0.35, rely=0.2, relheight=0.05, relwidth=0.1)
 
-        #Delete button
-        deleteButton = Button(mainMenuFrame, text="Delete")
-        deleteButton.config(font=("Arial", 15))
-        deleteButton.place(relx=0.35, rely=0.35, relheight=0.05, relwidth=0.1)
-
         #Delete Radio button
         deleteValue = StringVar(mainMenuFrame, "1")
         Radiobutton(mainMenuFrame, text='Payload', variable=deleteValue, value='1', background=self.background).place(relx=0.5, rely=0.35, relheight=0.05, relwidth=0.1)
         Radiobutton(mainMenuFrame, text='Cover', variable=deleteValue, value='2', background=self.background).place(relx=0.6, rely=0.35, relheight=0.05, relwidth=0.1)
         Radiobutton(mainMenuFrame, text='All', variable=deleteValue, value='3', background=self.background).place(relx=0.7, rely=0.35, relheight=0.05, relwidth=0.1)
+
+        #Delete button
+        deleteButton = Button(mainMenuFrame, text="Delete", command=lambda: [self.deleteFile(deleteValue.get())])
+        deleteButton.config(font=("Arial", 15))
+        deleteButton.place(relx=0.35, rely=0.35, relheight=0.05, relwidth=0.1)
 
         #View button
         viewButton = Button(mainMenuFrame, text="View")
@@ -74,13 +75,11 @@ class GUI:
         filelocation = askopenfilename()
         print(filelocation)
         print(uploadValue)
-        if uploadValue is "1":
-            print("hi")
+        if uploadValue == "1":
             destination = "./payload"
         else:
             destination = "./cover"
         source = filelocation
-
 
         try:
             shutil.copy2(source, destination,  follow_symlinks=True)
@@ -101,6 +100,21 @@ class GUI:
             # For other errors
         except:
             print("Error occurred while copying file.")
+
+    def deleteFile(self, deleteValue):
+        print(deleteValue)
+        if deleteValue == "3":
+            dir = './cover'
+            for f in os.listdir(dir):
+                os.remove(os.path.join(dir, f))
+
+            dir = './payload'
+            for f in os.listdir(dir):
+                os.remove(os.path.join(dir, f))
+            print("All files deleted")
+
+
+
 
     def image(self):
         from PIL import Image
