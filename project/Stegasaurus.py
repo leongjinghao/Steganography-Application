@@ -3,8 +3,8 @@ from tkinter.filedialog import askopenfilename
 from tkinter import ttk
 import shutil
 import os
+import ctypes
 import glob
-
 from PIL import Image
 
 class GUI:
@@ -50,13 +50,8 @@ class GUI:
         deleteButton.config(font=("Arial", 15))
         deleteButton.place(relx=0.35, rely=0.35, relheight=0.05, relwidth=0.1)
 
-        # View Radio button
-        viewValue = StringVar(mainMenuFrame, "1")
-        Radiobutton(mainMenuFrame, text='Payload', variable=viewValue, value='1', background=self.background).place(relx=0.5, rely=0.5, relheight=0.05, relwidth=0.1)
-        Radiobutton(mainMenuFrame, text='Cover', variable=viewValue, value='2', background=self.background).place(relx=0.6, rely=0.5, relheight=0.05, relwidth=0.1)
-
         #View button
-        viewButton = Button(mainMenuFrame, text="View", command=lambda: [mainMenuFrame.place_forget(), self.viewPage(mainGUI,viewValue.get())])
+        viewButton = Button(mainMenuFrame, text="View", command=lambda: [mainMenuFrame.place_forget(), self.viewPage(mainGUI)])
         viewButton.config(font=("Arial", 15))
         viewButton.place(relx=0.35, rely=0.5, relheight=0.05, relwidth=0.1)
 
@@ -114,6 +109,86 @@ class GUI:
                 os.remove(os.path.join(dir, f))
             print("All files deleted")
 
+
+
+    def viewPage(self, mainGUI):
+        viewFrame = Frame(mainGUI, bg=self.background)
+        viewFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
+
+        title = Label(viewFrame,
+                                  text="Payload files",
+                                  bg=self.background)
+
+
+        title.config(font=("MS Sans Serif", 30))
+        title.place(relx=0, rely=0, relheight=0.1, relwidth=0.5)
+
+        title = Label(viewFrame,
+                                  text="Cover files",
+                                  bg=self.background)
+
+
+        title.config(font=("MS Sans Serif", 30))
+        title.place(relx=0.5, rely=0, relheight=0.1, relwidth=0.5)
+
+
+
+        item_column = ('File Name','File Type')
+        payloadList = ttk.Treeview(viewFrame,columns=item_column,show='headings')
+        for i in range(len(item_column)):
+            payloadList.heading(item_column[i], text=item_column[i])
+
+        payloadList.column(item_column[0], anchor="w")
+        payloadList.column(item_column[1], anchor="n", width=10)
+        payloadList.place(relx=0,rely=0.1, relheight=0.5, relwidth=0.5)
+
+        item_column = ('File Name','File Type')
+        coverList = ttk.Treeview(viewFrame,columns=item_column,show='headings')
+        for i in range(len(item_column)):
+            coverList.heading(item_column[i], text=item_column[i])
+
+        coverList.column(item_column[0], anchor="w")
+        coverList.column(item_column[1], anchor="n", width=10)
+        coverList.place(relx=0.5,rely=0.1, relheight=0.5, relwidth=0.5)
+
+        payloadFiles = os.listdir('./payload')
+
+        coverFiles = os.listdir('./cover')
+
+        for f in range(len(payloadFiles)):
+            payloadFiles[f] = payloadFiles[f].split('.')
+        for f in range(len(coverFiles)):
+            coverFiles[f] = coverFiles[f].split('.')
+
+
+        for i, column in enumerate(payloadFiles, start=0):
+            payloadList.insert("", 0, values=(payloadFiles[i]))
+
+        for i, column in enumerate(coverFiles, start=0):
+            coverList.insert("", 0, values=(coverFiles[i]))
+
+
+        backButton = Button(viewFrame, text="Back", command=lambda: [viewFrame.place_forget(), self.mainMenu(mainGUI)])
+        backButton.config(font=("Arial", 30))
+        backButton.place(relx=0.05, rely=0.85, relheight=0.1, relwidth=0.2)
+
+        viewPayloadHexButton = Button(viewFrame, text="View payload data", command=lambda: [self.retrieveBinaries(payloadList.item(payloadList.selection())['values'], "payload")])
+        viewPayloadHexButton.config(font=("Arial", 11))
+        viewPayloadHexButton.place(relx=0.05, rely=0.65, relheight=0.1, relwidth=0.15)
+
+    def retrieveBinaries(self, fileSelection, payloadOrCover):
+
+        x = 0
+        y = 0
+        file = Image.open('./payload/' + '.'.join(fileSelection))
+        file = file.convert('RGB')
+        pixels = list(file.getdata())
+        print(pixels)
+        #width, height = file.size
+        #pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
+        print(pixels)
+        #ctypes.windll.user32.MessageBoxW(0, "Your text", fileSelection[0], 1)
+
     # def image(self):
     #     from PIL import Image
     #     x = 0
@@ -124,49 +199,9 @@ class GUI:
     #     pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
     #     #print(pixels)
 
-    def viewPage(self, mainGUI, viewValue):
-        viewFrame = Frame(mainGUI, bg=self.background)
-        viewFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
-        if viewValue == "1":
-            title = Label(viewFrame,
-                                  text="View Payload Objects",
-                                  bg=self.background)
-        else:
-            title = Label(viewFrame,
-                                  text="View Cover Objects",
-                                  bg=self.background)
-
-
-        title.config(font=("MS Sans Serif", 40))
-        title.place(relx=0, rely=0, relheight=0.1, relwidth=1)
 
 
 
-        item_column = ('File Name','File Type')
-        itemList = ttk.Treeview(viewFrame,columns=item_column,show='headings')
-        for i in range(len(item_column)):
-            itemList.heading(item_column[i], text=item_column[i])
-
-        itemList.column(item_column[0], anchor="n", width=600)
-        itemList.column(item_column[1], anchor="n", width=70)
-        itemList.place(relx=0,rely=0.1, relheight=0.5, relwidth=1)
-
-        if viewValue == "1":
-            files = os.listdir('./payload')
-        else:
-            files = os.listdir('./cover')
-
-        for f in range(len(files)):
-            files[f] = files[f].split('.')
-
-
-        for i, column in enumerate(files, start=0):
-            itemList.insert("", 0, values=(files[i]))
-
-
-        backButton = Button(viewFrame, text="Back", command=lambda: [viewFrame.place_forget(), self.mainMenu(mainGUI)])
-        backButton.config(font=("Arial", 30))
-        backButton.place(relx=0.05, rely=0.85, relheight=0.1, relwidth=0.2)
 
 
 
@@ -176,4 +211,4 @@ class Steganography:
 
 if __name__ == '__main__':
     main_GUI = GUI() #Instantiates a multiScraperGUI object.
-    main_GUI.image()
+
