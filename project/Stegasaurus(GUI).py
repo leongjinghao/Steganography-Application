@@ -6,6 +6,7 @@ import os
 import ctypes
 import glob
 from PIL import Image
+import cv2, numpy as np
 
 class GUI:
     background = 'lightgrey'
@@ -57,20 +58,52 @@ class GUI:
         uploadFrame = Frame(mainGUI, bg=self.background)
         uploadFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
 
+        title = Label(uploadFrame, text="What would you like to upload?", bg = self.background)
+        title.config(font=("Arial", 40))
+        title.place(relx=0.1, rely=0.05, relheight=0.1, relwidth=0.8)
+
         #Payload button
-        payloadButton = Button(uploadFrame, text="Payload", command=lambda: [uploadFrame.place_forget(), self.uploadFile(1), self.viewPage(mainGUI)])
+        payloadButton = Button(uploadFrame, text="Payload", command=lambda: [uploadFrame.place_forget(), self.uploadFile("1"), self.viewPage(mainGUI)])
         payloadButton.config(font=("Arial", 25))
         payloadButton.place(relx=0.45, rely=0.35, relheight=0.08, relwidth=0.15)
 
         #Cover button
-        coverButton = Button(uploadFrame, text="Cover", command=lambda: [uploadFrame.place_forget(), self.uploadFile(2), self.viewPage(mainGUI)])
+        coverButton = Button(uploadFrame, text="Cover", command=lambda: [uploadFrame.place_forget(), self.uploadFile("2"), self.viewPage(mainGUI)])
         coverButton.config(font=("Arial", 25))
         coverButton.place(relx=0.45, rely=0.55, relheight=0.08, relwidth=0.15)
 
         #Back button
-        coverButton = Button(uploadFrame, text="Back", command=lambda: [uploadFrame.place_forget(), self.viewPage(mainGUI)])
+        backButton = Button(uploadFrame, text="Back", command=lambda: [uploadFrame.place_forget(), self.viewPage(mainGUI)])
+        backButton.config(font=("Arial", 25))
+        backButton.place(relx=0.45, rely=0.75, relheight=0.08, relwidth=0.15)
+
+    def deletePage(self, mainGUI):
+        deleteFrame = Frame(mainGUI, bg=self.background)
+        deleteFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
+
+        title = Label(deleteFrame, text="What would you like to delete?", bg = self.background)
+        title.config(font=("Arial", 40))
+        title.place(relx=0.1, rely=0.05, relheight=0.1, relwidth=0.8)
+
+        #Payload button
+        payloadButton = Button(deleteFrame, text="Payload", command=lambda: [])
+        payloadButton.config(font=("Arial", 25))
+        payloadButton.place(relx=0.45, rely=0.25, relheight=0.08, relwidth=0.15)
+
+        #Cover button
+        coverButton = Button(deleteFrame, text="Cover", command=lambda: [])
         coverButton.config(font=("Arial", 25))
-        coverButton.place(relx=0.45, rely=0.75, relheight=0.08, relwidth=0.15)
+        coverButton.place(relx=0.45, rely=0.45, relheight=0.08, relwidth=0.15)
+
+        #All button
+        AllButton = Button(deleteFrame, text="All Files", command=lambda: [deleteFrame.place_forget(), self.deleteFile("3"), self.viewPage(mainGUI)])
+        AllButton.config(font=("Arial", 25))
+        AllButton.place(relx=0.4, rely=0.65, relheight=0.08, relwidth=0.25)
+
+        #Back button
+        backButton = Button(deleteFrame, text="Back", command=lambda: [deleteFrame.place_forget(), self.viewPage(mainGUI)])
+        backButton.config(font=("Arial", 25))
+        backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
 
     def uploadFile(self, uploadValue):
         filelocation = askopenfilename()
@@ -103,6 +136,7 @@ class GUI:
             print("Error occurred while copying file.")
 
     def deleteFile(self, deleteValue):
+        """Delete files"""
         print(deleteValue)
         if deleteValue == "3":
             dir = './cover'
@@ -112,6 +146,15 @@ class GUI:
             dir = './payload'
             for f in os.listdir(dir):
                 os.remove(os.path.join(dir, f))
+
+            dir = './extracted'
+            for f in os.listdir(dir):
+                os.remove(os.path.join(dir, f))
+
+            dir = './result'
+            for f in os.listdir(dir):
+                os.remove(os.path.join(dir, f))
+
             print("All files deleted")
 
 
@@ -195,9 +238,9 @@ class GUI:
 
 
 
-        viewPayloadHexButton = Button(viewFrame, text="View payload data", command=lambda: [self.retrieveBinaries(payloadList.item(payloadList.selection())['values'], "payload")])
-        viewPayloadHexButton.config(font=("Arial", 11))
-        viewPayloadHexButton.place(relx=0.05, rely=0.65, relheight=0.05, relwidth=0.15)
+        #viewPayloadHexButton = Button(viewFrame, text="View payload data", command=lambda: [self.retrieveBinaries(payloadList.item(payloadList.selection())['values'], "payload")])
+        #viewPayloadHexButton.config(font=("Arial", 11))
+        #viewPayloadHexButton.place(relx=0.05, rely=0.65, relheight=0.05, relwidth=0.15)
 
         #Hide button
         hideButton = Button(viewFrame, text="Hide payload",  command=lambda: [])
@@ -209,17 +252,13 @@ class GUI:
         extractButton.config(font=("Arial", 15))
         extractButton.place(relx=0.8, rely=0.9, relheight=0.05, relwidth=0.15)
 
-        viewPayloadHexButton = Button(viewFrame, text="Clear Selection", command=lambda: [self.clearSelection(payloadList,coverList,resultList)])
-        viewPayloadHexButton.config(font=("Arial", 11))
-        viewPayloadHexButton.place(relx=0.4, rely=0.65, relheight=0.05, relwidth=0.15)
-
         #Upload button
         uploadButton = Button(viewFrame, text="Upload", command=lambda: [viewFrame.place_forget(),self.uploadPage(mainGUI)])
         uploadButton.config(font=("Arial", 15))
         uploadButton.place(relx=0.05, rely=0.9, relheight=0.05, relwidth=0.2)
 
         #Delete button
-        uploadButton = Button(viewFrame, text="Delete", command=lambda: [])
+        uploadButton = Button(viewFrame, text="Delete", command=lambda: [viewFrame.place_forget(), self.deletePage(mainGUI)])
         uploadButton.config(font=("Arial", 15))
         uploadButton.place(relx=0.35, rely=0.9, relheight=0.05, relwidth=0.2)
 
@@ -241,18 +280,15 @@ class GUI:
         print(pixels)
         print(pixels)
 
-
-
-
-
-
-
-
-
-
 class Steganography:
-    def __init__(self):
-        x=1
+    def to_binary(self, data):
+        """Convert data to binary format as string"""
+        if isinstance(data, str):
+            return ''.join([format(ord(i), "08b") for i in data])
+        elif isinstance(data,int) or isinstance(data, np.uint8):
+            return format(data, "08b")
+        else:
+            raise TypeError("Type not supported.")
 
 if __name__ == '__main__':
     main_GUI = GUI() #Instantiates a multiScraperGUI object.
