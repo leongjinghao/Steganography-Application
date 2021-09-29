@@ -44,14 +44,12 @@ def hideData(image, message, mode, bitSelect):
         # initialise bit range as bitSelect + 1 (start from bit 0)
         bitRange = bitSelect + 1
     if payloadLen > limit:
-        print("Error: Insufficient bit on cover!")
-        return
+        raise Exception("Error: Insufficient bit on cover!")
 
     for i in range(bitRange):
         # if mode selected is single bit replacement, change bit to be replaced to the bit selected
-        if mode == 1:
-            i = bitSelect
-
+        if mode == 1: i = bitSelect
+        # traverse image's pixel
         for rows in cover:              # traverse rows of image (height)
             for pixel in rows:          # traverse each column of each row (pixel)
                 # extract binary B, G and R value from each pixel
@@ -68,26 +66,38 @@ def hideData(image, message, mode, bitSelect):
                         if i == 0:
                             pixel[bgrIndex] = int(colour[:-(i + 1)] + payload[payloadIndex], 2)
                         else:
+                            #print(pixel[bgrIndex])
                             pixel[bgrIndex] = int(colour[:-(i + 1)] + payload[payloadIndex] + colour[-i:], 2)
+                            #print(pixel[bgrIndex])
                         # shift indexes accordingly
                         bgrIndex -= 1
                         payloadIndex += 1
-                    # else all bits of payload are replaced on the cover
+                    # else all bits of payload are placed on the cover
                     else:
                         cv2.imwrite('cover.png', cover)
                         return
 
-def decoder(image, bitSelect):
+def decoder(image, mode, bitSelect):
     sImage = cv2.imread(image)
     hiddenBinary = ''
-    for rows in sImage:
-        for pixel in rows:
-            b, g, r = messageToBinary(pixel[0]), \
-                      messageToBinary(pixel[1]), \
-                      messageToBinary(pixel[2])
-            hiddenBinary += r[-(bitSelect + 1)]
-            hiddenBinary += g[-(bitSelect + 1)]
-            hiddenBinary += b[-(bitSelect + 1)]
+    # check for range of bit to decode depending on mode selected
+    if mode == 1:
+        bitRange = 1
+    elif mode == 2:
+        bitRange = bitSelect + 1
+
+    for i in range(bitRange):
+        # if mode selected is single bit replacement, change bit to be decode to the bit selected
+        if mode == 1: i = bitSelect
+        # append LSB (with range) from cover together to form the message in binary
+        for rows in sImage:
+            for pixel in rows:
+                b, g, r = messageToBinary(pixel[0]), \
+                          messageToBinary(pixel[1]), \
+                          messageToBinary(pixel[2])
+                hiddenBinary += r[-(i + 1)]
+                hiddenBinary += g[-(i + 1)]
+                hiddenBinary += b[-(i + 1)]
 
     # group 8 bits into a byte
     hiddenByte = [hiddenBinary[i: i + 8] for i in range(0, len(hiddenBinary), 8)]
@@ -100,15 +110,17 @@ def decoder(image, bitSelect):
         if message[-5:] == '#####':
             # return message without the delimiter
             return message[:-5]
-    return
+    raise Exception("Error encountered while decoding!")
 
 
 if __name__ == '__main__':
-    message = 'hello darkness my old friend'
+    with open('payload\message.txt') as f:
+        message = f.read()
     image = cv2.imread('Lenna.png')
-    mode = 1      # 1. change single bit, 2. multiple bit replacement
-    bitSelect = 3
+    mode = 2      # 1. change single bit, 2. multiple bit replacement
+    bitSelect = 7
     hideData(image, message, mode, bitSelect)
-    messageDecoded = decoder('cover.png', bitSelect)
-    print(messageDecoded)
+    messageDecoded = decoder('cover.png', mode, bitSelect)
+    with open('result\messageDecoded.txt', "w") as f:
+        f.write(messageDecoded)
 
