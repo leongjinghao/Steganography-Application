@@ -30,16 +30,15 @@ class Steganography:
 
     def messageToBinary(self, message):
         messageInBin = ''
+        # if message is in integer form
         if type(message) == int or type(message) == np.uint8:
             messageInBin = format(message, "08b")
-        # if message is in string form
+        # else if message is in string form
         elif type(self.message) == str:
             # convert each char in message into binary
             # concatenate all to form the message in binary
             for i in message:
                 messageInBin += format(ord(i), '08b')
-        # else if message is in integer form
-
         # print(messageInBin)
         return messageInBin
 
