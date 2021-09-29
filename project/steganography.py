@@ -1,126 +1,148 @@
 import cv2
 import numpy as np
 
-def messageToBinary(message):
-    messageInBin = ''
 
-    # if message is in string form
-    if type(message) == str:
-        # convert each char in message into binary
-        # concatenate all to form the message in binary
-        for i in message:
-            messageInBin += format(ord(i), '08b')
-    # else if message is in integer form
-    elif type(message) == int or type(message) == np.uint8:
-        messageInBin = format(message, "08b")
+class Steganography:
+    image = None
+    message = None
+    mode = 0
+    bitSelect = 0
 
-    #print(messageInBin)
-    return messageInBin
+    def __init__(self, imagePath, messagePath, mode, bitSelect):
+        self.image = cv2.imread(imagePath)
+        with open(messagePath) as f:
+            self.message = f.read()
+        self.mode = mode
+        self.bitSelect = bitSelect
 
-def hideData(image, message, mode, bitSelect):
-    # copy of image, the cover
-    cover = image.copy()
+    def changeImage(self, imagePath):
+        self.image = cv2.imread(imagePath)
 
-    # append a delimiter at the end of message
-    message += '#####'
-    # convert message to binary, the payload
-    payload = messageToBinary(message)
-    # length of the payload to keep track the number of bytes going to be used
-    payloadLen = len(payload)
-    # index to keep track of the bit of payload to replace on the cover
-    payloadIndex = 0
+    def changeMessage(self, messagePath):
+        with open(messagePath) as f:
+            self.message = f.read()
 
-    # validate if there are enough bit on cover for replacement (different value for each mode)
-    # number of possible single bit replacement on cover
-    if mode == 1:
-        # pixel count * 3 (RGB)
-        limit = image.shape[0] * image.shape[1] * 3
-        # initialise bit range as 1
-        bitRange = 1
-    # number of possible multiple bit replacement on cover
-    elif mode == 2:
-        # pixel count * 3 (RGB) * number of bits
-        limit = image.shape[0] * image.shape[1] * 3 * (bitSelect + 1)
-        # initialise bit range as bitSelect + 1 (start from bit 0)
-        bitRange = bitSelect + 1
-    if payloadLen > limit:
-        raise Exception("Error: Insufficient bit on cover!")
+    def changeMode(self, mode):
+        self.mode = mode
 
-    for i in range(bitRange):
-        # if mode selected is single bit replacement, change bit to be replaced to the bit selected
-        if mode == 1: i = bitSelect
-        # traverse image's pixel
-        for rows in cover:              # traverse rows of image (height)
-            for pixel in rows:          # traverse each column of each row (pixel)
-                # extract binary B, G and R value from each pixel
-                b, g, r = messageToBinary(pixel[0]),    \
-                          messageToBinary(pixel[1]),    \
-                          messageToBinary(pixel[2])
-                # index of R is 2 (pixel[2] = r, pixel[1] = g, pixel[0] = b)
-                bgrIndex = 2
-                for colour in (r, g, b):
-                    # if there are still bits left to be replaced
-                    if payloadIndex < payloadLen:
-                        # replace the current selected bit on bitRange
-                        # special case when current selected bit is bit 0
-                        if i == 0:
-                            pixel[bgrIndex] = int(colour[:-(i + 1)] + payload[payloadIndex], 2)
+    def changeBitSelect(self, bitSelect):
+        self.bitSelect = bitSelect
+
+    def messageToBinary(self, message):
+        messageInBin = ''
+        if type(message) == int or type(message) == np.uint8:
+            messageInBin = format(message, "08b")
+        # if message is in string form
+        elif type(self.message) == str:
+            # convert each char in message into binary
+            # concatenate all to form the message in binary
+            for i in message:
+                messageInBin += format(ord(i), '08b')
+        # else if message is in integer form
+
+        # print(messageInBin)
+        return messageInBin
+
+    def hideData(self):
+        # copy of image, the cover
+        cover = self.image.copy()
+        # append a delimiter at the end of message
+        self.message += '#####'
+        # convert message to binary, the payload
+        payload = self.messageToBinary(self.message)
+        # length of the payload to keep track the number of bytes going to be used
+        payloadLen = len(payload)
+        # index to keep track of the bit of payload to replace on the cover
+        payloadIndex = 0
+
+        # validate if there are enough bit on cover for replacement (different value for each mode)
+        # number of possible single bit replacement on cover
+        if self.mode == 1:
+            # pixel count * 3 (RGB)
+            limit = cover.shape[0] * cover.shape[1] * 3
+            # initialise bit range as 1
+            bitRange = 1
+        # number of possible multiple bit replacement on cover
+        elif self.mode == 2:
+            # pixel count * 3 (RGB) * number of bits
+            limit = cover.shape[0] * cover.shape[1] * 3 * (self.bitSelect + 1)
+            # initialise bit range as bitSelect + 1 (start from bit 0)
+            bitRange = self.bitSelect + 1
+        if payloadLen > limit:
+            raise Exception("Error: Insufficient bit on cover!")
+
+        for i in range(bitRange):
+            # if mode selected is single bit replacement, change bit to be replaced to the bit selected
+            if self.mode == 1: i = self.bitSelect
+            # traverse image's pixel
+            for rows in cover:  # traverse rows of image (height)
+                for pixel in rows:  # traverse each column of each row (pixel)
+                    # extract binary B, G and R value from each pixel
+                    b, g, r = self.messageToBinary(pixel[0]), \
+                              self.messageToBinary(pixel[1]), \
+                              self.messageToBinary(pixel[2])
+                    # index of R is 2 (pixel[2] = r, pixel[1] = g, pixel[0] = b)
+                    bgrIndex = 2
+                    for colour in (r, g, b):
+                        # if there are still bits left to be replaced
+                        if payloadIndex < payloadLen:
+                            # replace the current selected bit on bitRange
+                            # special case when current selected bit is bit 0
+                            if i == 0:
+                                pixel[bgrIndex] = int(colour[:-(i + 1)] + payload[payloadIndex], 2)
+                            else:
+                                # print(pixel[bgrIndex])
+                                pixel[bgrIndex] = int(colour[:-(i + 1)] + payload[payloadIndex] + colour[-i:], 2)
+                                # print(pixel[bgrIndex])
+                            # shift indexes accordingly
+                            bgrIndex -= 1
+                            payloadIndex += 1
+                        # else all bits of payload are placed on the cover
                         else:
-                            #print(pixel[bgrIndex])
-                            pixel[bgrIndex] = int(colour[:-(i + 1)] + payload[payloadIndex] + colour[-i:], 2)
-                            #print(pixel[bgrIndex])
-                        # shift indexes accordingly
-                        bgrIndex -= 1
-                        payloadIndex += 1
-                    # else all bits of payload are placed on the cover
-                    else:
-                        cv2.imwrite('cover.png', cover)
-                        return
+                            cv2.imwrite('result/sImage.png', cover)
+                            return
 
-def decoder(image, mode, bitSelect):
-    sImage = cv2.imread(image)
-    hiddenBinary = ''
-    # check for range of bit to decode depending on mode selected
-    if mode == 1:
-        bitRange = 1
-    elif mode == 2:
-        bitRange = bitSelect + 1
+    def decode(self, sImagePath):
+        sImage = cv2.imread(sImagePath)
+        hiddenBinary = ''
+        # check for range of bit to decode depending on mode selected
+        if self.mode == 1:
+            bitRange = 1
+        elif self.mode == 2:
+            bitRange = self.bitSelect + 1
 
-    for i in range(bitRange):
-        # if mode selected is single bit replacement, change bit to be decode to the bit selected
-        if mode == 1: i = bitSelect
-        # append LSB (with range) from cover together to form the message in binary
-        for rows in sImage:
-            for pixel in rows:
-                b, g, r = messageToBinary(pixel[0]), \
-                          messageToBinary(pixel[1]), \
-                          messageToBinary(pixel[2])
-                hiddenBinary += r[-(i + 1)]
-                hiddenBinary += g[-(i + 1)]
-                hiddenBinary += b[-(i + 1)]
+        for i in range(bitRange):
+            # if mode selected is single bit replacement, change bit to be decode to the bit selected
+            if self.mode == 1: i = self.bitSelect
+            # append LSB (with range) from cover together to form the message in binary
+            for rows in sImage:
+                for pixel in rows:
+                    b, g, r = self.messageToBinary(pixel[0]), \
+                              self.messageToBinary(pixel[1]), \
+                              self.messageToBinary(pixel[2])
+                    hiddenBinary += r[-(i + 1)]
+                    hiddenBinary += g[-(i + 1)]
+                    hiddenBinary += b[-(i + 1)]
 
-    # group 8 bits into a byte
-    hiddenByte = [hiddenBinary[i: i + 8] for i in range(0, len(hiddenBinary), 8)]
-    # convert from byte to char
-    message = ''
-    for byte in hiddenByte:
-        # convert to int using base 2 then to char
-        message += chr(int(byte, 2))
-        # if the last 5 decoded char is '#####' (delimiter) stop converting
-        if message[-5:] == '#####':
-            # return message without the delimiter
-            return message[:-5]
-    raise Exception("Error encountered while decoding!")
+        # group 8 bits into a byte
+        hiddenByte = [hiddenBinary[i: i + 8] for i in range(0, len(hiddenBinary), 8)]
+        # convert from byte to char
+        hiddenMessage = ''
+        for byte in hiddenByte:
+            # convert to int using base 2 then to char
+            hiddenMessage += chr(int(byte, 2))
+            # if the last 5 decoded char is '#####' (delimiter) stop converting
+            if hiddenMessage[-5:] == '#####':
+                # return message without the delimiter
+                with open('extracted/messageDecoded.txt', "w") as f:
+                    f.write(hiddenMessage[:-5])
+                return
+        raise Exception("Error encountered while decoding!")
 
 
 if __name__ == '__main__':
-    with open('payload\message.txt') as f:
-        message = f.read()
-    image = cv2.imread('Lenna.png')
-    mode = 2      # 1. change single bit, 2. multiple bit replacement
-    bitSelect = 7
-    hideData(image, message, mode, bitSelect)
-    messageDecoded = decoder('cover.png', mode, bitSelect)
-    with open('result\messageDecoded.txt', "w") as f:
-        f.write(messageDecoded)
-
+    # mode: 1. change single bit, 2. multiple bit replacement
+    # bitSelect: 0 to 7
+    stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', mode=2, bitSelect=7)
+    stegasaurus.hideData()
+    stegasaurus.decode('result/sImage.png')
