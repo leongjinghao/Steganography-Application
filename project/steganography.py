@@ -136,6 +136,7 @@ class Steganography:
                 with open('extracted/messageDecoded.txt', "w") as f:
                     f.write(hiddenMessage[:-5])
                 return
+        # if run out of the loop and decoding is still not done, something must have went wrong
         raise Exception("Error encountered while decoding!")
 
 
