@@ -415,7 +415,7 @@ class GUI:
         Radiobutton(resultSelectionPage, text='Multi-Bit mode', variable=uploadValue, value='2', background=self.background).place(relx=0.2, rely=0.7, relheight=0.05, relwidth=0.1)
 
         #Item quantity scroller
-        itemQuantityScroller = Scale(resultSelectionPage, from_=1, to=7, orient=HORIZONTAL, resolution = 1)
+        itemQuantityScroller = Scale(resultSelectionPage, from_=0, to=7, orient=HORIZONTAL, resolution = 1)
         itemQuantityScroller.place(relx=0.1, rely=0.85, relheight=0.07, relwidth=0.3)
 
         # Submit button
@@ -457,7 +457,7 @@ class GUI:
         Radiobutton(namingPageFrame, text='Multi-Bit mode', variable=uploadValue, value='2', background=self.background).place(relx=0.5, rely=0.3, relheight=0.05, relwidth=0.1)
 
         #Item quantity scroller
-        itemQuantityScroller = Scale(namingPageFrame, from_=1, to=7, orient=HORIZONTAL, resolution = 1)
+        itemQuantityScroller = Scale(namingPageFrame, from_=0, to=7, orient=HORIZONTAL, resolution = 1)
         itemQuantityScroller.place(relx=0.35, rely=0.45, relheight=0.07, relwidth=0.3)
 
         nameParameter = StringVar()
