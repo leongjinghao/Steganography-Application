@@ -9,9 +9,13 @@ class Steganography:
     bitSelect = 0
 
     def __init__(self, imagePath, messagePath, mode, bitSelect):
+
         self.image = cv2.imread(imagePath)
-        with open(messagePath) as f:
-            self.message = f.read()
+        try:
+            with open(messagePath) as f:
+                self.message = f.read()
+        except:
+            pass
         self.mode = mode
         self.bitSelect = bitSelect
 
@@ -42,7 +46,7 @@ class Steganography:
         # print(messageInBin)
         return messageInBin
 
-    def hideData(self):
+    def hideData(self, fileName):
         # copy of image, the cover
         cover = self.image.copy()
         # append a delimiter at the end of message
@@ -98,7 +102,7 @@ class Steganography:
                             payloadIndex += 1
                         # else all bits of payload are placed on the cover
                         else:
-                            cv2.imwrite('result/sImage.png', cover)
+                            cv2.imwrite('result/'+ fileName +'.png', cover)
                             return
 
     def decode(self, sImagePath):
@@ -143,8 +147,6 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    imagePath = 'cover/Lenna.png'
-    messagePath = 'payload/message.txt'
-    stegasaurus = Steganography(imagePath, messagePath, mode=2, bitSelect=7)
+    stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', mode=2, bitSelect=7)
     stegasaurus.hideData()
-    stegasaurus.decode('result/sImage.' + imagePath.split('.')[-1])  # dynamic extension
+    stegasaurus.decode('result/sImage.png')
