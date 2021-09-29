@@ -4,13 +4,18 @@ import numpy as np
 
 class Steganography:
     image = None
+    imageExtension = None
     message = None
+    # messageExtension = None
     mode = 0
     bitSelect = 0
+    stegoImageFileName = None
+    stegoImagePath = None
 
-    def __init__(self, imagePath, messagePath, mode, bitSelect):
+    def __init__(self, imagePath, messagePath, mode, bitSelect, stegoImageFileName):
 
         self.image = cv2.imread(imagePath)
+        self.imageExtension = imagePath.split('.')[-1]
         try:
             with open(messagePath) as f:
                 self.message = f.read()
@@ -18,19 +23,29 @@ class Steganography:
             pass
         self.mode = mode
         self.bitSelect = bitSelect
+        self.stegoImageFileName = stegoImageFileName
 
     def changeImage(self, imagePath):
         self.image = cv2.imread(imagePath)
 
     def changeMessage(self, messagePath):
-        with open(messagePath) as f:
-            self.message = f.read()
+        try:
+            with open(messagePath) as f:
+                self.message = f.read()
+        except:
+            pass
 
     def changeMode(self, mode):
         self.mode = mode
 
     def changeBitSelect(self, bitSelect):
         self.bitSelect = bitSelect
+
+    def changeStegoImageFileName(self, stegoImageFileName):
+        self.stegoImageFileName = stegoImageFileName
+
+    def changeStegoImagePath(self, stegoImagePath):
+        self.stegoImagePath = stegoImagePath
 
     def messageToBinary(self, message):
         messageInBin = ''
@@ -46,7 +61,7 @@ class Steganography:
         # print(messageInBin)
         return messageInBin
 
-    def hideData(self, fileName):
+    def hideData(self):
         # copy of image, the cover
         cover = self.image.copy()
         # append a delimiter at the end of message
@@ -102,11 +117,13 @@ class Steganography:
                             payloadIndex += 1
                         # else all bits of payload are placed on the cover
                         else:
-                            cv2.imwrite('result/'+ fileName +'.png', cover)
+                            self.stegoImagePath = 'result/' + self.stegoImageFileName + '.' + self.imageExtension
+                            cv2.imwrite(self.stegoImagePath, cover)
                             return
 
-    def decode(self, sImagePath):
-        sImage = cv2.imread(sImagePath)
+    # require stegoImagePath, mode and bitSelect to be configured
+    def decode(self):
+        stegoImage = cv2.imread(self.stegoImagePath)
         hiddenBinary = ''
         # check for range of bit to decode depending on mode selected
         if self.mode == 1:
@@ -118,7 +135,7 @@ class Steganography:
             # if mode selected is single bit replacement, change bit to be decode to the bit selected
             if self.mode == 1: i = self.bitSelect
             # append LSB (with range) from cover together to form the message in binary
-            for rows in sImage:
+            for rows in stegoImage:
                 for pixel in rows:
                     b, g, r = self.messageToBinary(pixel[0]), \
                               self.messageToBinary(pixel[1]), \
@@ -147,6 +164,6 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', mode=2, bitSelect=7)
+    stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', 2, 7, 'stegoImage')
     stegasaurus.hideData()
-    stegasaurus.decode('result/sImage.' + imagePath.split('.')[-1]) # dynamic extension
+    stegasaurus.decode()
