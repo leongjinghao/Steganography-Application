@@ -149,4 +149,4 @@ if __name__ == '__main__':
     # bitSelect: 0 to 7
     stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', mode=2, bitSelect=7)
     stegasaurus.hideData()
-    stegasaurus.decode('result/sImage.png')
+    stegasaurus.decode('result/sImage.' + imagePath.split('.')[-1]) # dynamic extension
