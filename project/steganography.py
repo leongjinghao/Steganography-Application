@@ -143,6 +143,8 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', mode=2, bitSelect=7)
+    imagePath = 'cover/Lenna.png'
+    messagePath = 'payload/message.txt'
+    stegasaurus = Steganography(imagePath, messagePath, mode=2, bitSelect=7)
     stegasaurus.hideData()
-    stegasaurus.decode('result/sImage.png')
+    stegasaurus.decode('result/sImage.' + imagePath.split('.')[-1])  # dynamic extension
