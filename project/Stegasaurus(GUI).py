@@ -280,16 +280,6 @@ class GUI:
         print(pixels)
         print(pixels)
 
-class Steganography:
-    def to_binary(self, data):
-        """Convert data to binary format as string"""
-        if isinstance(data, str):
-            return ''.join([format(ord(i), "08b") for i in data])
-        elif isinstance(data,int) or isinstance(data, np.uint8):
-            return format(data, "08b")
-        else:
-            raise TypeError("Type not supported.")
-
 if __name__ == '__main__':
     main_GUI = GUI() #Instantiates a multiScraperGUI object.
 
