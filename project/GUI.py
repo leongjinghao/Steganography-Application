@@ -37,22 +37,29 @@ class GUI:
                       text="Payload files",
                       bg=self.background)
 
-        title.config(font=("MS Sans Serif", 30))
+        title.config(font=("MS Sans Serif", 25))
         title.place(relx=0, rely=0, relheight=0.1, relwidth=0.25)
 
         title = Label(viewFrame,
                       text="Cover files",
                       bg=self.background)
 
-        title.config(font=("MS Sans Serif", 30))
-        title.place(relx=0.35, rely=0, relheight=0.1, relwidth=0.25)
+        title.config(font=("MS Sans Serif", 25))
+        title.place(relx=0.25, rely=0, relheight=0.1, relwidth=0.25)
 
         title = Label(viewFrame,
                       text="Result files",
                       bg=self.background)
 
-        title.config(font=("MS Sans Serif", 30))
-        title.place(relx=0.7, rely=0, relheight=0.1, relwidth=0.25)
+        title.config(font=("MS Sans Serif", 25))
+        title.place(relx=0.5, rely=0, relheight=0.1, relwidth=0.25)
+
+        title = Label(viewFrame,
+                      text="Extracted files",
+                      bg=self.background)
+
+        title.config(font=("MS Sans Serif", 25))
+        title.place(relx=0.75, rely=0, relheight=0.1, relwidth=0.25)
 
 
 
@@ -63,7 +70,7 @@ class GUI:
 
         payloadList.column(item_column[0], anchor="w")
         payloadList.column(item_column[1], anchor="n", width=10)
-        payloadList.place(relx=0, rely=0.1, relheight=0.5, relwidth=0.3333)
+        payloadList.place(relx=0, rely=0.1, relheight=0.5, relwidth=0.25)
 
 
         coverList = ttk.Treeview(viewFrame, columns=item_column, show='headings')
@@ -72,24 +79,33 @@ class GUI:
 
         coverList.column(item_column[0], anchor="w")
         coverList.column(item_column[1], anchor="n", width=10)
-        coverList.place(relx=0.33333, rely=0.1, relheight=0.5, relwidth=0.3333)
+        coverList.place(relx=0.25, rely=0.1, relheight=0.5, relwidth=0.25)
 
         resultList = ttk.Treeview(viewFrame, columns=item_column, show='headings')
         for i in range(len(item_column)):
             resultList.heading(item_column[i], text=item_column[i])
 
-        if len(payloadList.selection()) > 0:
-            payloadList.selection_remove(payloadList.selection()[0])
-
         resultList.column(item_column[0], anchor="w")
         resultList.column(item_column[1], anchor="n", width=10)
-        resultList.place(relx=0.66666, rely=0.1, relheight=0.5, relwidth=0.3333)
+        resultList.place(relx=0.5, rely=0.1, relheight=0.5, relwidth=0.25)
+
+        extractList = ttk.Treeview(viewFrame, columns=item_column, show='headings')
+        for i in range(len(item_column)):
+            extractList.heading(item_column[i], text=item_column[i])
+
+        extractList.column(item_column[0], anchor="w")
+        extractList.column(item_column[1], anchor="n", width=10)
+        extractList.place(relx=0.75, rely=0.1, relheight=0.5, relwidth=0.25)
+
+
 
         payloadFiles = os.listdir('./payload')
 
         coverFiles = os.listdir('./cover')
 
         resultFiles = os.listdir('./result')
+
+        extractFiles = os.listdir('./extracted')
 
         for f in range(len(payloadFiles)):
             payloadFiles[f] = payloadFiles[f].split('.')
@@ -105,6 +121,11 @@ class GUI:
             resultFiles[f] = resultFiles[f].split('.')
         for i, column in enumerate(resultFiles, start=0):
             resultList.insert("", 0, values=(resultFiles[i]))
+
+        for f in range(len(extractFiles)):
+            extractFiles[f] = extractFiles[f].split('.')
+        for i, column in enumerate(extractFiles, start=0):
+            extractList.insert("", 0, values=(extractFiles[i]))
 
         # Hide button
         hideButton = Button(viewFrame, text="Hide payload",
