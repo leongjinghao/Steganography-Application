@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import speech_recognition as sr
 
 
 class Steganography:
@@ -11,6 +12,7 @@ class Steganography:
     bitSelect = 0
     stegoImageFileName = None
     stegoImagePath = None
+    audioFileName = None
 
     def __init__(self, imagePath, messagePath, mode, bitSelect, stegoImageFileName):
 
@@ -60,6 +62,24 @@ class Steganography:
                 messageInBin += format(ord(i), '08b')
         # print(messageInBin)
         return messageInBin
+
+    def AudiotoText(self, text):
+        # showing file name
+        filename = "16-122828-0002"
+
+        # initialize the recognizer
+        r = sr.Recognizer()
+
+        # open the file
+        with sr.AudioFile(filename) as source:
+            # listen to data (load audio to memory)
+            audio_data = r.record(source)
+            # recognize (convert from speech to text)
+            text = r.recognize_google(audio_data)
+            print(text)
+
+
+
 
     def hideData(self):
         # copy of image, the cover
