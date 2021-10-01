@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import speech_recognition as sr
-
+import os
 
 class Steganography:
     image = None
@@ -22,7 +22,22 @@ class Steganography:
             with open(messagePath) as f:
                 self.message = f.read()
         except:
-            pass
+            #Changes file to txt extension temporarily
+            change_ext_file = messagePath
+            base = os.path.splitext(change_ext_file)[0]
+            os.rename(change_ext_file, base + '.txt')
+            messagePath = messagePath.split('.')[0] + '.txt'
+            #print(messagePath)
+
+            #Store into message variable
+            with open(messagePath, errors="ignore") as f:
+                self.message = f.read()
+
+            #Revert back to original extention
+            change_ext_file = messagePath
+            base = os.path.splitext(change_ext_file)[0]
+            os.rename(change_ext_file, base + ("."+self.imageExtension))
+
         self.mode = mode
         self.bitSelect = bitSelect
         self.stegoImageFileName = stegoImageFileName
@@ -77,9 +92,6 @@ class Steganography:
             # recognize (convert from speech to text)
             text = r.recognize_google(audio_data)
             print(text)
-
-
-
 
     def hideData(self):
         # copy of image, the cover
@@ -184,6 +196,6 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    stegasaurus = Steganography('cover/Lenna.png', 'payload/message.txt', 2, 7, 'stegoImage')
-    stegasaurus.hideData()
-    stegasaurus.decode()
+    #stegasaurus.hideData()
+    #stegasaurus.decode()
+    Steganography('cover/Lenna.png', 'payload/1Capture.png', 1, 7, 'test').hideData()
