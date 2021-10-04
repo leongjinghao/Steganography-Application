@@ -9,6 +9,7 @@ from PIL import Image
 import cv2, numpy as np
 from steganography import Steganography
 import pymsgbox  # pip install PyMsgBox
+from PIL import Image
 
 
 class GUI:
@@ -127,6 +128,11 @@ class GUI:
         for i, column in enumerate(extractFiles, start=0):
             extractList.insert("", 0, values=(extractFiles[i]))
 
+        payloadList.bind("<Double-1>", lambda event: self.DoubleClick(event, payloadList, 1))
+        coverList.bind("<Double-1>", lambda event: self.DoubleClick(event, coverList, 2))
+        resultList.bind("<Double-1>", lambda event: self.DoubleClick(event, resultList, 3))
+        extractList.bind("<Double-1>", lambda event: self.DoubleClick(event, extractList, 4))
+
         # Hide button
         hideButton = Button(viewFrame, text="Hide payload",
                             command=lambda: [viewFrame.place_forget(), self.hidePage(mainGUI)])
@@ -150,6 +156,28 @@ class GUI:
                               command=lambda: [viewFrame.place_forget(), self.deletePage(mainGUI)])
         uploadButton.config(font=("Arial", 15))
         uploadButton.place(relx=0.35, rely=0.9, relheight=0.05, relwidth=0.2)
+
+    "Double click function"
+    def DoubleClick(self, event, tree, type):
+        try:
+            if type == 1:
+                image = Image.open('payload/'+'.'.join(tree.item(tree.selection())['values']))
+                image.show()
+            elif type == 2:
+                image = Image.open('cover/'+'.'.join(tree.item(tree.selection())['values']))
+                image.show()
+            elif type == 3:
+                image = Image.open('result/'+'.'.join(tree.item(tree.selection())['values']))
+                image.show()
+            elif type == 4:
+                image = Image.open('extracted/'+'.'.join(tree.item(tree.selection())['values']))
+                image.show()
+
+
+
+        except:
+            print("Images can only be seen")
+        #print(item)
 
     def uploadPage(self, mainGUI):
         uploadFrame = Frame(mainGUI, bg=self.background)
@@ -435,13 +463,22 @@ class GUI:
         Radiobutton(resultSelectionPage, text='Single-Bit mode', variable=uploadValue, value='1', background=self.background).place(relx=0.1, rely=0.7, relheight=0.05, relwidth=0.1)
         Radiobutton(resultSelectionPage, text='Multi-Bit mode', variable=uploadValue, value='2', background=self.background).place(relx=0.2, rely=0.7, relheight=0.05, relwidth=0.1)
 
+        #txt/img?
+        fileType = StringVar(resultSelectionPage, "1")
+        Radiobutton(resultSelectionPage, text='Text', variable=fileType, value='txt', background=self.background).place(relx=0.7, rely=0.7, relheight=0.05, relwidth=0.1)
+        Radiobutton(resultSelectionPage, text='Image', variable=fileType, value='img', background=self.background).place(relx=0.8, rely=0.7, relheight=0.05, relwidth=0.1)
+
+        title = Label(resultSelectionPage, text="What type of file are you trying to extract?", bg=self.background)
+        title.config(font=("Arial", 11))
+        title.place(relx=0.65, rely=0.6, relheight=0.1, relwidth=0.3)
+
         #Item quantity scroller
         itemQuantityScroller = Scale(resultSelectionPage, from_=0, to=7, orient=HORIZONTAL, resolution = 1)
         itemQuantityScroller.place(relx=0.1, rely=0.85, relheight=0.07, relwidth=0.3)
 
         # Submit button
         submitButton = Button(resultSelectionPage, text="Submit", command=lambda: [
-            [resultSelectionPage.place_forget(), Steganography("","",int(uploadValue.get()),int(itemQuantityScroller.get())).decode('result/'+".".join(resultList.item(resultList.selection())['values']))
+            [resultSelectionPage.place_forget(), self.extractData(uploadValue.get(), itemQuantityScroller.get(), fileType.get(), ".".join(resultList.item(resultList.selection())['values']))
              ,self.viewPage(mainGUI)] if resultList.item(resultList.selection())['values'] != "" else [
                 self.displayError("file")]])
         submitButton.config(font=("Arial", 25))
@@ -452,6 +489,18 @@ class GUI:
                             command=lambda: [resultSelectionPage.place_forget(), self.viewPage(mainGUI)])
         backButton.config(font=("Arial", 25))
         backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
+
+    def extractData(self, mode, bitSelect, fileType, name):
+        print(mode,bitSelect)
+        steganography = Steganography("", "", int(mode), int(bitSelect), "")
+        steganography.changeStegoImagePath('result/' + name)
+        steganography.setStegoExtractPath('decoded_file')
+        steganography.setExtractFileType(fileType)
+        print(fileType)
+        try:
+            steganography.decode()
+        except:
+            pymsgbox.alert('The parameters that you have selected are wrong', 'Error')
 
     def nameFilePage(self, mainGUI, payloadSelection):
         namingPageFrame = Frame(mainGUI, bg=self.background)
@@ -488,7 +537,7 @@ class GUI:
 
         # Submit button
         submitButton = Button(namingPageFrame, text="Submit", command=lambda: [
-            [namingPageFrame.place_forget(),Steganography("cover/"+self.selectedCover,"payload/"+self.selectedPayload,mode=int(uploadValue.get()),bitSelect=int(itemQuantityScroller.get())).hideData(nameParameter.get()),
+            [namingPageFrame.place_forget(),Steganography("cover/" + self.selectedCover,"payload/" + self.selectedPayload, int(uploadValue.get()), int(itemQuantityScroller.get()), nameEntered.get()).hideData(),
              self.viewPage(mainGUI)] if nameParameter.get() != "" else [
                 self.displayError("name")]])
         submitButton.config(font=("Arial", 25))
