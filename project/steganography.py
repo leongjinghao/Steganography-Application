@@ -2,45 +2,60 @@ import cv2
 import numpy as np
 import speech_recognition as sr
 import os
+import base64
+import magic
+import pymsgbox
+
 
 class Steganography:
     image = None
     imageExtension = None
     message = None
-    # messageExtension = None
+    messageExtension = None
     mode = 0
     bitSelect = 0
     stegoImageFileName = None
     stegoImagePath = None
     audioFileName = None
+    stegoExtractPath = None
+    ExtractType = None
 
     def __init__(self, imagePath, messagePath, mode, bitSelect, stegoImageFileName):
+        if imagePath != "":
+            self.image = cv2.imread(imagePath)
+            self.imageExtension = imagePath.split('.')[-1]
+            self.messageExtension = messagePath.split('.')[-1]
+            self.stegoImageFileName = stegoImageFileName
+            try:
+                with open(messagePath) as f:
+                    self.message = f.read()
+            except:
+                print("running path 2")
 
-        self.image = cv2.imread(imagePath)
-        self.imageExtension = imagePath.split('.')[-1]
-        try:
-            with open(messagePath) as f:
-                self.message = f.read()
-        except:
-            #Changes file to txt extension temporarily
-            change_ext_file = messagePath
-            base = os.path.splitext(change_ext_file)[0]
-            os.rename(change_ext_file, base + '.txt')
-            messagePath = messagePath.split('.')[0] + '.txt'
-            #print(messagePath)
+                #Read file as byte
+                with open(messagePath, "rb") as image2string:
+                    self.message = base64.b64encode(image2string.read())
+                #Convert byte to string
+                self.message = str(self.message.decode('utf-8'))
 
-            #Store into message variable
-            with open(messagePath, errors="ignore") as f:
-                self.message = f.read()
 
-            #Revert back to original extention
-            change_ext_file = messagePath
-            base = os.path.splitext(change_ext_file)[0]
-            os.rename(change_ext_file, base + ("."+self.imageExtension))
+
+
+                #decodeit = open('hello_level.png', 'wb')
+                #decodeit.write(base64.b64decode((converted_string)))
+                #decodeit.close()
+
+
+
+
+
+
+                #print(self.message.decode('utf-8'))
+                #self.message = str(self.message)
 
         self.mode = mode
         self.bitSelect = bitSelect
-        self.stegoImageFileName = stegoImageFileName
+
 
     def changeImage(self, imagePath):
         self.image = cv2.imread(imagePath)
@@ -64,6 +79,12 @@ class Steganography:
     def changeStegoImagePath(self, stegoImagePath):
         self.stegoImagePath = stegoImagePath
 
+    def setStegoExtractPath(self, stegoExtractPath):
+        self.stegoExtractPath = stegoExtractPath
+
+    def setExtractFileType(self, ExtractType):
+        self.ExtractType = ExtractType
+
     def messageToBinary(self, message):
         messageInBin = ''
         # if message is in integer form
@@ -75,7 +96,6 @@ class Steganography:
             # concatenate all to form the message in binary
             for i in message:
                 messageInBin += format(ord(i), '08b')
-        # print(messageInBin)
         return messageInBin
 
     def AudiotoText(self, text):
@@ -119,7 +139,8 @@ class Steganography:
             # initialise bit range as bitSelect + 1 (start from bit 0)
             bitRange = self.bitSelect + 1
         if payloadLen > limit:
-            raise Exception("Error: Insufficient bit on cover!")
+            pymsgbox.alert('Not enough bits. Switch to multi-bit and adjust to bit slider accordingly', 'Error')
+            return
 
         for i in range(bitRange):
             # if mode selected is single bit replacement, change bit to be replaced to the bit selected
@@ -185,17 +206,35 @@ class Steganography:
             hiddenMessage += chr(int(byte, 2))
             # if the last 5 decoded char is '#####' (delimiter) stop converting
             if hiddenMessage[-5:] == '#####':
-                # return message without the delimiter
-                with open('extracted/messageDecoded.txt', "w") as f:
-                    f.write(hiddenMessage[:-5])
+                if self.ExtractType == "txt":
+                    # return message without the delimiter
+                    with open('extracted/messageDecoded.txt', "w") as f:
+                        f.write(hiddenMessage[:-5])
+                elif self.ExtractType == "img":
+                    with open('extracted/'+self.stegoExtractPath, "wb") as f:
+                        f.write(base64.b64decode(hiddenMessage[:-5]))
+
+                    #Rename file to based on detected extension
+                    extension=magic.from_file('extracted/'+self.stegoExtractPath, mime = True).split('/')[1]
+                    rename_file = 'extracted/'+self.stegoExtractPath
+                    base = os.path.splitext(rename_file)[0]
+                    os.rename(rename_file, base + "." + extension)
                 return
         # if run out of the loop and decoding is still not done, something must have went wrong
         raise Exception("Error encountered while decoding!")
 
 
+
+
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    #stegasaurus.hideData()
-    #stegasaurus.decode()
-    Steganography('cover/Lenna.png', 'payload/1Capture.png', 1, 7, 'test').hideData()
+    a = Steganography('cover/servletFileDownload-199.png', 'payload/Untitled.png', 2, 2, '123test')
+    a.hideData()
+
+    a.changeStegoImagePath('result/123test.png')
+    a.setStegoExtractPath('decoded')
+    a.setExtractFileType("img")
+    a.decode()
+
+    pass
