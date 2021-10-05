@@ -561,7 +561,7 @@ class GUI:
     def extractData(self, mode, bitSelect, fileType, name):
         print(mode,bitSelect)
         steganography = Steganography("", "", int(mode), int(bitSelect), "")
-        steganography.changeStegoImagePath('result/' + name)
+        steganography.setStegoImagePath('result/' + name)
         steganography.setStegoExtractPath('decoded_file')
         steganography.setExtractFileType(fileType)
         print(fileType)
