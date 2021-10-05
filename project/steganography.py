@@ -9,9 +9,7 @@ import pymsgbox
 
 class Steganography:
     image = None
-    imageExtension = None
     message = None
-    messageExtension = None
     mode = 0
     bitSelect = 0
     stegoImageFileName = None
@@ -24,8 +22,6 @@ class Steganography:
     def __init__(self, imagePath, messagePath, mode, bitSelect, stegoImageFileName):
         if imagePath != "":
             self.image = cv2.imread(imagePath)
-            self.imageExtension = imagePath.split('.')[-1]
-            self.messageExtension = messagePath.split('.')[-1]
             self.stegoImageFileName = stegoImageFileName
             try:
                 with open(messagePath) as f:
@@ -33,51 +29,42 @@ class Steganography:
             except:
                 print("running path 2")
 
-                #Read file as byte
+                # Read file as byte
                 with open(messagePath, "rb") as image2string:
                     self.message = base64.b64encode(image2string.read())
-                #Convert byte to string
+                # Convert byte to string
                 self.message = str(self.message.decode('utf-8'))
 
+                # decodeit = open('hello_level.png', 'wb')
+                # decodeit.write(base64.b64decode((converted_string)))
+                # decodeit.close()
 
-
-
-                #decodeit = open('hello_level.png', 'wb')
-                #decodeit.write(base64.b64decode((converted_string)))
-                #decodeit.close()
-
-
-
-
-
-
-                #print(self.message.decode('utf-8'))
-                #self.message = str(self.message)
+                # print(self.message.decode('utf-8'))
+                # self.message = str(self.message)
 
         self.mode = mode
         self.bitSelect = bitSelect
 
-
-    def changeImage(self, imagePath):
+    def setImage(self, imagePath):
         self.image = cv2.imread(imagePath)
 
-    def changeMessage(self, messagePath):
+    def setMessage(self, messagePath):
         try:
             with open(messagePath) as f:
                 self.message = f.read()
         except:
             pass
 
-    def changeMode(self, mode):
+    def setMode(self, mode):
         self.mode = mode
 
-    def changeBitSelect(self, bitSelect):
+    def setBitSelect(self, bitSelect):
         self.bitSelect = bitSelect
 
-    def changeStegoImageFileName(self, stegoImageFileName):
+    def setStegoImageFileName(self, stegoImageFileName):
         self.stegoImageFileName = stegoImageFileName
 
-    def changeStegoImagePath(self, stegoImagePath):
+    def setStegoImagePath(self, stegoImagePath):
         self.stegoImagePath = stegoImagePath
 
     def setStegoExtractPath(self, stegoExtractPath):
@@ -86,10 +73,10 @@ class Steganography:
     def setExtractFileType(self, ExtractType):
         self.ExtractType = ExtractType
 
-    def changeAudioFileName(self, audioFileName):
+    def setAudioFileName(self, audioFileName):
         self.audioFileName = audioFileName
 
-    def changeAudioFilePath(self, audioFilePath):
+    def setAudioFilePath(self, audioFilePath):
         self.audioFilePath = audioFilePath
 
     def messageToBinary(self, message):
@@ -105,7 +92,7 @@ class Steganography:
                 messageInBin += format(ord(i), '08b')
         return messageInBin
 
-    def audiotoText(self, text):
+    def audioToText(self, text):
         # showing file name
         filename = "16-122828-0002"
 
@@ -177,7 +164,7 @@ class Steganography:
                             payloadIndex += 1
                         # else all bits of payload are placed on the cover
                         else:
-                            self.stegoImagePath = 'result/' + self.stegoImageFileName + '.' + self.imageExtension
+                            self.stegoImagePath = 'result/' + self.stegoImageFileName + '.png'
                             cv2.imwrite(self.stegoImagePath, cover)
                             return
 
@@ -218,12 +205,12 @@ class Steganography:
                     with open('extracted/messageDecoded.txt', "w") as f:
                         f.write(hiddenMessage[:-5])
                 elif self.ExtractType == "img":
-                    with open('extracted/'+self.stegoExtractPath, "wb") as f:
+                    with open('extracted/' + self.stegoExtractPath, "wb") as f:
                         f.write(base64.b64decode(hiddenMessage[:-5]))
 
-                    #Rename file to based on detected extension
-                    extension=magic.from_file('extracted/'+self.stegoExtractPath, mime = True).split('/')[1]
-                    rename_file = 'extracted/'+self.stegoExtractPath
+                    # Rename file to based on detected extension
+                    extension = magic.from_file('extracted/' + self.stegoExtractPath, mime=True).split('/')[1]
+                    rename_file = 'extracted/' + self.stegoExtractPath
                     base = os.path.splitext(rename_file)[0]
                     os.rename(rename_file, base + "." + extension)
                 return
@@ -231,17 +218,15 @@ class Steganography:
         raise Exception("Error encountered while decoding!")
 
 
-
-
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    a = Steganography('cover/servletFileDownload-199.png', 'payload/Untitled.png', 2, 2, '123test')
+    a = Steganography('cover/fruit.jpg', 'payload/message.txt', 2, 7, '123test')
     a.hideData()
 
-    a.changeStegoImagePath('result/123test.png')
+    a.setStegoImagePath('result/123test.png')
     a.setStegoExtractPath('decoded')
-    a.setExtractFileType("img")
+    a.setExtractFileType("txt")
     a.decode()
 
     pass
