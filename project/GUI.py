@@ -215,26 +215,94 @@ class GUI:
         title.place(relx=0.1, rely=0.05, relheight=0.1, relwidth=0.8)
 
         # Payload button
-        payloadButton = Button(deleteFrame, text="Payload", command=lambda: [])
+        payloadButton = Button(deleteFrame, text="Payload", command=lambda: [deleteFrame.place_forget(), self.deleteSinglePage(mainGUI,1)])
         payloadButton.config(font=("Arial", 25))
-        payloadButton.place(relx=0.45, rely=0.25, relheight=0.08, relwidth=0.15)
+        payloadButton.place(relx=0.45, rely=0.25, relheight=0.07, relwidth=0.15)
 
         # Cover button
-        coverButton = Button(deleteFrame, text="Cover", command=lambda: [])
+        coverButton = Button(deleteFrame, text="Cover", command=lambda: [deleteFrame.place_forget(), self.deleteSinglePage(mainGUI,2)])
         coverButton.config(font=("Arial", 25))
-        coverButton.place(relx=0.45, rely=0.45, relheight=0.08, relwidth=0.15)
+        coverButton.place(relx=0.45, rely=0.35, relheight=0.07, relwidth=0.15)
+
+        # Result button
+        coverButton = Button(deleteFrame, text="Result", command=lambda: [deleteFrame.place_forget(), self.deleteSinglePage(mainGUI,3)])
+        coverButton.config(font=("Arial", 25))
+        coverButton.place(relx=0.45, rely=0.45, relheight=0.07, relwidth=0.15)
+
+        # Extracted button
+        coverButton = Button(deleteFrame, text="Extracted", command=lambda: [deleteFrame.place_forget(), self.deleteSinglePage(mainGUI,4)])
+        coverButton.config(font=("Arial", 25))
+        coverButton.place(relx=0.45, rely=0.55, relheight=0.07, relwidth=0.15)
 
         # All button
         AllButton = Button(deleteFrame, text="All Files",
                            command=lambda: [deleteFrame.place_forget(), self.deleteFile("3"), self.viewPage(mainGUI)])
         AllButton.config(font=("Arial", 25))
-        AllButton.place(relx=0.4, rely=0.65, relheight=0.08, relwidth=0.25)
+        AllButton.place(relx=0.45, rely=0.65, relheight=0.07, relwidth=0.15)
 
         # Back button
         backButton = Button(deleteFrame, text="Back",
                             command=lambda: [deleteFrame.place_forget(), self.viewPage(mainGUI)])
         backButton.config(font=("Arial", 25))
         backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
+
+    #delete page for specific storage
+    def deleteSinglePage(self, mainGUI, type):
+        deleteSelectionFrame = Frame(mainGUI, bg=self.background)
+        deleteSelectionFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
+
+        title = Label(deleteSelectionFrame, text="Choose the file to delete.", bg=self.background)
+        title.config(font=("Arial", 20))
+        title.place(relx=0.1, rely=0, relheight=0.1, relwidth=0.8)
+
+        item_column = ('File Name', 'File Type')
+
+        deleteList = ttk.Treeview(deleteSelectionFrame, columns=item_column, show='headings')
+        for i in range(len(item_column)):
+            deleteList.heading(item_column[i], text=item_column[i])
+
+        deleteList.column(item_column[0], anchor="w")
+        deleteList.column(item_column[1], anchor="n", width=10)
+        deleteList.place(relx=0, rely=0.1, relheight=0.5, relwidth=1)
+
+        if type == 1:
+            listfiles = os.listdir('./payload')
+        if type == 2:
+            listfiles = os.listdir('./cover')
+        if type == 3:
+            listfiles = os.listdir('./result')
+        if type == 4:
+            listfiles = os.listdir('./extracted')
+
+        for f in range(len(listfiles)):
+            listfiles[f] = listfiles[f].split('.')
+
+        for i, column in enumerate(listfiles, start=0):
+            deleteList.insert("", 0, values=(listfiles[i]))
+
+        # Delete button
+        deleteButton = Button(deleteSelectionFrame, text="Delete", command=lambda: [[deleteSelectionFrame.place_forget(),self.removeFile(deleteList.item(deleteList.selection())['values'],type),self.deleteSinglePage(mainGUI,type)] if deleteList.item(deleteList.selection())['values'] != "" else 0])
+        deleteButton.config(font=("Arial", 25))
+        deleteButton.place(relx=0.45, rely=0.75, relheight=0.07, relwidth=0.15)
+
+        # Back button
+        backButton = Button(deleteSelectionFrame, text="Back", command=lambda: [deleteSelectionFrame.place_forget(),self.deletePage(mainGUI)])
+        backButton.config(font=("Arial", 25))
+        backButton.place(relx=0.45, rely=0.85, relheight=0.07, relwidth=0.15)
+
+    def removeFile(self, selection, type):
+        if type == 1:
+            storage = "payload/"
+        elif type == 2:
+            storage = "cover/"
+        elif type == 3:
+            storage = "result/"
+        elif type == 4:
+            storage = "extracted/"
+        selection = '.'.join(selection)
+        print(selection)
+        os.remove(storage+selection)
+
 
     def uploadFile(self, uploadValue):
         filelocation = askopenfilename()
