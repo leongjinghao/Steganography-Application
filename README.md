@@ -10,7 +10,7 @@ speech_recognition
 > -pip install SpeechRecognition
 
 magic
-> -pip install python-magic
+> -pip install python-magic-bin==0.4.14
 
 pymsgbox
 > -pip install PyMsgBox
