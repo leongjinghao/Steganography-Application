@@ -17,6 +17,7 @@ class Steganography:
     stegoImageFileName = None
     stegoImagePath = None
     audioFileName = None
+    audioFilePath = None
     stegoExtractPath = None
     ExtractType = None
 
@@ -85,6 +86,12 @@ class Steganography:
     def setExtractFileType(self, ExtractType):
         self.ExtractType = ExtractType
 
+    def changeAudioFileName(self, audioFileName):
+        self.audioFileName = audioFileName
+
+    def changeAudioFilePath(self, audioFilePath):
+        self.audioFilePath = audioFilePath
+
     def messageToBinary(self, message):
         messageInBin = ''
         # if message is in integer form
@@ -98,7 +105,7 @@ class Steganography:
                 messageInBin += format(ord(i), '08b')
         return messageInBin
 
-    def AudiotoText(self, text):
+    def audiotoText(self, text):
         # showing file name
         filename = "16-122828-0002"
 
