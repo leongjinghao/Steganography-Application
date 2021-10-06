@@ -133,8 +133,8 @@ class Steganography:
             # initialise bit range as bitSelect + 1 (start from bit 0)
             bitRange = self.bitSelect + 1
         if payloadLen > limit:
-            pymsgbox.alert('Not enough bits. Switch to multi-bit and adjust to bit slider accordingly', 'Error')
-            return
+            raise Exception("Not enough bits")
+            
 
         for i in range(bitRange):
             # if mode selected is single bit replacement, change bit to be replaced to the bit selected
