@@ -5,7 +5,7 @@ import shutil
 import os
 import ctypes
 import glob
-from PIL import Image
+from PIL import Image, ImageTk, ImageOps
 import cv2, numpy as np
 from steganography import Steganography
 import pymsgbox  # pip install PyMsgBox
@@ -14,12 +14,15 @@ from PIL import Image
 
 class GUI:
     background = 'lightgrey'
+    testbg = 'red'
     test = 'white'
     items = []
     message = ""
     typeFlag = ""
     selectedPayload = ""
     selectedCover = ""
+    errorFlag = 0
+
 
     def __init__(self):
 
@@ -49,7 +52,7 @@ class GUI:
         title.place(relx=0.25, rely=0, relheight=0.1, relwidth=0.25)
 
         title = Label(viewFrame,
-                      text="Result files",
+                      text="Stego files",
                       bg=self.background)
 
         title.config(font=("MS Sans Serif", 25))
@@ -167,7 +170,7 @@ class GUI:
                 image = Image.open('cover/'+'.'.join(tree.item(tree.selection())['values']))
                 image.show()
             elif type == 3:
-                image = Image.open('result/'+'.'.join(tree.item(tree.selection())['values']))
+                image = Image.open(str('result/'+'.'.join(tree.item(tree.selection())['values'])))
                 image.show()
             elif type == 4:
                 image = Image.open('extracted/'+'.'.join(tree.item(tree.selection())['values']))
@@ -225,7 +228,7 @@ class GUI:
         coverButton.place(relx=0.45, rely=0.35, relheight=0.07, relwidth=0.15)
 
         # Result button
-        coverButton = Button(deleteFrame, text="Result", command=lambda: [deleteFrame.place_forget(), self.deleteSinglePage(mainGUI,3)])
+        coverButton = Button(deleteFrame, text="Stego", command=lambda: [deleteFrame.place_forget(), self.deleteSinglePage(mainGUI,3)])
         coverButton.config(font=("Arial", 25))
         coverButton.place(relx=0.45, rely=0.45, relheight=0.07, relwidth=0.15)
 
@@ -405,8 +408,7 @@ class GUI:
 
         # Submit button
         submitButton = Button(messagePageFrame, text="Submit", command=lambda: [[messagePageFrame.place_forget(),
-                                                                                 self.coverSelectionPage(mainGUI,
-                                                                                                         messageParameter.get())] if messageParameter.get() != "" else [
+                                                                                 self.coverSelectionPage(mainGUI)] if messageParameter.get() != "" else [
             self.displayError("message")]])
         submitButton.config(font=("Arial", 25))
         submitButton.place(relx=0.45, rely=0.65, relheight=0.08, relwidth=0.15)
@@ -571,6 +573,7 @@ class GUI:
             pymsgbox.alert('The parameters that you have selected are wrong', 'Error')
 
     def nameFilePage(self, mainGUI, payloadSelection):
+        self.errorFlag = 0
         namingPageFrame = Frame(mainGUI, bg=self.background)
         namingPageFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
 
@@ -605,14 +608,19 @@ class GUI:
 
         # Submit button
         submitButton = Button(namingPageFrame, text="Submit", command=lambda: [
-            [namingPageFrame.place_forget(),Steganography("cover/" + self.selectedCover,"payload/" + self.selectedPayload, int(uploadValue.get()), int(itemQuantityScroller.get()), nameEntered.get()).hideData(),
-             self.viewPage(mainGUI)] if nameParameter.get() != "" else [
+            [namingPageFrame.place_forget(),self.catchSubmit("cover/" + self.selectedCover,"payload/" + self.selectedPayload, int(uploadValue.get()), int(itemQuantityScroller.get()), nameEntered.get())
+             ,[self.displayHide(nameEntered.get(), mainGUI)] if self.errorFlag == 0 else self.nameFilePage(mainGUI,payloadSelection)] if nameParameter.get() != "" else [
                 self.displayError("name")]])
         submitButton.config(font=("Arial", 25))
         submitButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
 
-
-
+    def catchSubmit(self, cover, payload, uploadValue, bit, name):
+        try:
+            Steganography(cover,payload,uploadValue,bit,name).hideData()
+        except:
+            self.errorFlag = 1
+            print("error flag triggered")
+            pymsgbox.alert("Not enough space, increase the number of bits", 'Error')
 
 
     def displayError(self, type):
@@ -625,9 +633,147 @@ class GUI:
         if type == "name":
             pymsgbox.alert("File name can't be empty", 'Error')
 
+    def displayHide(self, result, mainGUI):
+
+        allowedImg = ['png',"PNG","jpg","gif","jpeg"]
+
+
+
+
+        hideFrame = Frame(mainGUI, bg=self.background)
+        hideFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
+
+        title = Label(hideFrame,
+                      text="Cover",
+                      bg=self.background)
+        title.config(font=("MS Sans Serif", 25))
+        title.place(relx=0, rely=0, relheight=0.1, relwidth=0.25)
+
+        title = Label(hideFrame,
+                      text="Payload",
+                      bg=self.background)
+        title.config(font=("MS Sans Serif", 25))
+        title.place(relx=0.36, rely=0, relheight=0.1, relwidth=0.25)
+
+        title = Label(hideFrame,
+                      text="Stego",
+                      bg=self.background)
+        title.config(font=("MS Sans Serif", 25))
+        title.place(relx=0.74, rely=0, relheight=0.1, relwidth=0.25)
+
+
+
+
+
+        viewFrame = Frame(hideFrame, bg=self.background)
+        viewFrame.place(relx=0, rely=0.1, relheight=0.5, relwidth=0.3)
+
+        viewFrame2 = Frame(hideFrame, bg=self.background)
+        viewFrame2.place(relx=0.35, rely=0.1, relheight=0.5, relwidth=0.3)
+
+        viewFrame3 = Frame(hideFrame, bg=self.background)
+        viewFrame3.place(relx=0.7, rely=0.1, relheight=0.5, relwidth=0.3)
+
+
+        #Cover part --------------------------------------------------------------
+        img = Image.open("cover/"+self.selectedCover)
+
+
+        img2 = ImageTk.PhotoImage(img)
+
+        imagewidth = img2.width()
+        imageheight = img2.height()
+
+        ratio = imageheight/imagewidth
+
+        if imageheight > 320:
+            diff = imageheight - 320
+            imageheight = imageheight - diff
+            imagewidth = imageheight/ratio
+
+        if imagewidth > 320:
+            diff = imagewidth - 320
+            imagewidth = imagewidth - diff
+            imageheight = ratio * imagewidth
+
+        img = img.resize((int(imagewidth),int(imageheight)))
+        img2 = ImageTk.PhotoImage(img)
+
+        panel = Label(viewFrame, image=img2)
+        viewFrame.photo = img2
+        panel.pack(side="bottom",  expand="yes")
+
+        for i in range(len(allowedImg)):
+            if self.selectedPayload.split('.')[-1] == allowedImg[i]:
+                # Result part --------------------------------------------------------------
+                img = Image.open("payload/" + self.selectedPayload)
+
+                img2 = ImageTk.PhotoImage(img)
+
+                imagewidth = img2.width()
+                imageheight = img2.height()
+
+                ratio = imageheight / imagewidth
+
+                if imageheight > 320:
+                    diff = imageheight - 320
+                    imageheight = imageheight - diff
+                    imagewidth = imageheight / ratio
+
+                if imagewidth > 320:
+                    diff = imagewidth - 320
+                    imagewidth = imagewidth - diff
+                    imageheight = ratio * imagewidth
+
+                img = img.resize((int(imagewidth), int(imageheight)))
+                img2 = ImageTk.PhotoImage(img)
+
+                panel = Label(viewFrame2, image=img2)
+                viewFrame2.photo = img2
+                panel.pack(side="bottom", expand="yes")
+
+        #Result part --------------------------------------------------------------
+        img = Image.open("result/" + result +"."+ self.selectedCover.split('.')[-1])
+
+        img2 = ImageTk.PhotoImage(img)
+
+        imagewidth = img2.width()
+        imageheight = img2.height()
+
+        ratio = imageheight/imagewidth
+
+        if imageheight > 320:
+            diff = imageheight - 320
+            imageheight = imageheight - diff
+            imagewidth = imageheight/ratio
+
+        if imagewidth > 320:
+            diff = imagewidth - 320
+            imagewidth = imagewidth - diff
+            imageheight = ratio * imagewidth
+
+        img = img.resize((int(imagewidth),int(imageheight)))
+        img2 = ImageTk.PhotoImage(img)
+
+        panel = Label(viewFrame3, image=img2)
+        viewFrame3.photo = img2
+        panel.pack(side="bottom",  expand="yes")
+
+
+
+        # Exit button
+        backButton = Button(hideFrame, text="Continue",
+                            command=lambda: [hideFrame.place_forget(), self.viewPage(mainGUI)])
+        backButton.config(font=("Arial", 25))
+        backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
+
+
+
 
 
 
 
 if __name__ == '__main__':
     main_GUI = GUI()
+
+
