@@ -5,6 +5,9 @@ import os
 import base64
 import magic
 import pymsgbox
+import wave
+from scipy.io.wavfile import read, write
+import io
 
 
 class Steganography:
@@ -18,6 +21,7 @@ class Steganography:
     audioFilePath = None
     stegoExtractPath = None
     ExtractType = None
+    paddingBitCount = 0
 
     def __init__(self, imagePath, messagePath, mode, bitSelect, stegoImageFileName):
         if imagePath != "":
@@ -29,11 +33,25 @@ class Steganography:
             except:
                 print("running path 2")
 
-                # Read file as byte
-                with open(messagePath, "rb") as image2string:
-                    self.message = base64.b64encode(image2string.read())
-                # Convert byte to string
-                self.message = str(self.message.decode('utf-8'))
+                # if message (payload) is audio file
+                if messagePath.split('.')[-1] == 'wav':
+                    # Read file as byte
+                    with open(messagePath, "rb") as wavfile:
+                        input_wav = wavfile.read()
+                    # save message as a BytesIO object, which is a buffer for bytes object
+                    rate, data = read(io.BytesIO(input_wav))
+                    wav_byte = bytes()
+                    byte_io = io.BytesIO(wav_byte)
+                    write(byte_io, rate, data)
+                    self.message = byte_io.read()
+
+                # else message (payload) is image file
+                else:
+                    # Read file as byte
+                    with open(messagePath, "rb") as image2string:
+                        self.message = base64.b64encode(image2string.read())
+                    # Convert byte to string
+                    self.message = str(self.message.decode('utf-8'))
 
                 # decodeit = open('hello_level.png', 'wb')
                 # decodeit.write(base64.b64decode((converted_string)))
@@ -90,7 +108,22 @@ class Steganography:
             # concatenate all to form the message in binary
             for i in message:
                 messageInBin += format(ord(i), '08b')
+        # else, message is in byte
+        else:
+            # convert to binary, remove the leading '0b' notation which can corrupt the data
+            messageInBin = bin(int.from_bytes(self.message, byteorder='big'))[2:]
+            # check if padding bit is required make sure payload is in full byte
+            # if payload bit count is not divisible by 8, need to add padding bit
+            messageInBinLen = len(messageInBin)
+            if (messageInBinLen % 8) != 0:
+                self.paddingBitCount = 8 - (messageInBinLen % 8)
+            messageInBin += '0' * self.paddingBitCount
+            # append delimiter at the end
+            messageInBin += '0010001100100011001000110010001100100011' # '#####' in binary
         return messageInBin
+
+    def bitStringToBytes(self, bitString):
+        return int(bitString, 2).to_bytes((len(bitString) + 7) // 8, byteorder='big')
 
     def audioToText(self, text):
         # showing file name
@@ -110,8 +143,11 @@ class Steganography:
     def hideData(self):
         # copy of image, the cover
         cover = self.image.copy()
-        # append a delimiter at the end of message
-        self.message += '#####'
+        # append a delimiter at the end of message, note that byte message (wav) will not perform this here
+        try:
+            self.message += '#####'
+        except:
+            pass
         # convert message to binary, the payload
         payload = self.messageToBinary(self.message)
         # length of the payload to keep track the number of bytes going to be used
@@ -207,12 +243,18 @@ class Steganography:
                 elif self.ExtractType == "img":
                     with open('extracted/' + self.stegoExtractPath, "wb") as f:
                         f.write(base64.b64decode(hiddenMessage[:-5]))
-
                     # Rename file to based on detected extension
                     extension = magic.from_file('extracted/' + self.stegoExtractPath, mime=True).split('/')[1]
                     rename_file = 'extracted/' + self.stegoExtractPath
                     base = os.path.splitext(rename_file)[0]
                     os.rename(rename_file, base + "." + extension)
+                elif self.ExtractType == "wav":
+                    # remove delimiter and the padding bit
+                    bin_data = self.messageToBinary(hiddenMessage[:-5])[:-self.paddingBitCount]
+                    wav_byte = self.bitStringToBytes(bin_data)
+                    with open('extracted/audioDecoded.wav', 'wb') as wavfile:
+                        wavfile.write(wav_byte)
+
                 return
         # if run out of the loop and decoding is still not done, something must have went wrong
         raise Exception("Error encountered while decoding!")
@@ -221,12 +263,12 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    a = Steganography('cover/fruit.jpg', 'payload/message.txt', 2, 7, '123test')
+    a = Steganography('cover/Lenna.png', 'payload/16-122828-0002.wav', 2, 7, '123test')
     a.hideData()
 
     a.setStegoImagePath('result/123test.png')
     a.setStegoExtractPath('decoded')
-    a.setExtractFileType("txt")
+    a.setExtractFileType("wav")
     a.decode()
 
     pass
