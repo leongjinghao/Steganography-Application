@@ -733,7 +733,7 @@ class GUI:
                 panel.pack(side="bottom", expand="yes")
 
         #Result part --------------------------------------------------------------
-        img = Image.open("result/" + result +"."+ self.selectedCover.split('.')[-1])
+        img = Image.open("result/" + result +".png")
 
         img2 = ImageTk.PhotoImage(img)
 
