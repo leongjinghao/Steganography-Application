@@ -294,17 +294,19 @@ class GUI:
         backButton.place(relx=0.45, rely=0.85, relheight=0.07, relwidth=0.15)
 
     def removeFile(self, selection, type):
-        if type == 1:
-            storage = "payload/"
-        elif type == 2:
-            storage = "cover/"
-        elif type == 3:
-            storage = "result/"
-        elif type == 4:
-            storage = "extracted/"
-        selection = '.'.join(selection)
-        print(selection)
-        os.remove(storage+selection)
+        try:
+            if type == 1:
+                storage = "payload/"
+            elif type == 2:
+                storage = "cover/"
+            elif type == 3:
+                storage = "result/"
+            elif type == 4:
+                storage = "extracted/"
+            selection = '.'.join(selection)
+            os.remove(storage+selection)
+        except:
+            print("Error deleting")
 
 
     def uploadFile(self, uploadValue):
@@ -533,10 +535,12 @@ class GUI:
         Radiobutton(resultSelectionPage, text='Single-Bit mode', variable=uploadValue, value='1', background=self.background).place(relx=0.1, rely=0.7, relheight=0.05, relwidth=0.1)
         Radiobutton(resultSelectionPage, text='Multi-Bit mode', variable=uploadValue, value='2', background=self.background).place(relx=0.2, rely=0.7, relheight=0.05, relwidth=0.1)
 
-        #txt/img?
-        fileType = StringVar(resultSelectionPage, "1")
-        Radiobutton(resultSelectionPage, text='Text', variable=fileType, value='txt', background=self.background).place(relx=0.7, rely=0.7, relheight=0.05, relwidth=0.1)
-        Radiobutton(resultSelectionPage, text='Image', variable=fileType, value='img', background=self.background).place(relx=0.8, rely=0.7, relheight=0.05, relwidth=0.1)
+        #txt/img/wav?
+        fileType = StringVar(resultSelectionPage, "txt")
+        Radiobutton(resultSelectionPage, text='Text', variable=fileType, value='txt', background=self.background).place(relx=0.65, rely=0.7, relheight=0.05, relwidth=0.1)
+        Radiobutton(resultSelectionPage, text='Image', variable=fileType, value='img', background=self.background).place(relx=0.75, rely=0.7, relheight=0.05, relwidth=0.1)
+        Radiobutton(resultSelectionPage, text='Audio', variable=fileType, value='wav',
+                    background=self.background).place(relx=0.85, rely=0.7, relheight=0.05, relwidth=0.1)
 
         title = Label(resultSelectionPage, text="What type of file are you trying to extract?", bg=self.background)
         title.config(font=("Arial", 11))
@@ -562,15 +566,16 @@ class GUI:
 
     def extractData(self, mode, bitSelect, fileType, name):
         print(mode,bitSelect)
+        print(name)
         steganography = Steganography("", "", int(mode), int(bitSelect), "")
         steganography.setStegoImagePath('result/' + name)
         steganography.setStegoExtractPath('decoded_file')
         steganography.setExtractFileType(fileType)
         print(fileType)
-        try:
-            steganography.decode()
-        except:
-            pymsgbox.alert('The parameters that you have selected are wrong', 'Error')
+        #try:
+        steganography.decode()
+        #except:
+            #pymsgbox.alert('The parameters that you have selected are wrong', 'Error')
 
     def nameFilePage(self, mainGUI, payloadSelection):
         self.errorFlag = 0
@@ -612,7 +617,12 @@ class GUI:
              ,[self.displayHide(nameEntered.get(), mainGUI)] if self.errorFlag == 0 else self.nameFilePage(mainGUI,payloadSelection)] if nameParameter.get() != "" else [
                 self.displayError("name")]])
         submitButton.config(font=("Arial", 25))
-        submitButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
+        submitButton.place(relx=0.45, rely=0.75, relheight=0.08, relwidth=0.15)
+
+        exitButton = Button(namingPageFrame, text="Exit", command=lambda: [namingPageFrame.place_forget(), self.viewPage(mainGUI)])
+        exitButton.config(font=("Arial", 25))
+        exitButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
+
 
     def catchSubmit(self, cover, payload, uploadValue, bit, name):
         try:
@@ -733,31 +743,34 @@ class GUI:
                 panel.pack(side="bottom", expand="yes")
 
         #Result part --------------------------------------------------------------
-        img = Image.open("result/" + result +".png")
+        try:
+            img = Image.open("result/" + result +".png")
 
-        img2 = ImageTk.PhotoImage(img)
+            img2 = ImageTk.PhotoImage(img)
 
-        imagewidth = img2.width()
-        imageheight = img2.height()
+            imagewidth = img2.width()
+            imageheight = img2.height()
 
-        ratio = imageheight/imagewidth
+            ratio = imageheight/imagewidth
 
-        if imageheight > 320:
-            diff = imageheight - 320
-            imageheight = imageheight - diff
-            imagewidth = imageheight/ratio
+            if imageheight > 320:
+                diff = imageheight - 320
+                imageheight = imageheight - diff
+                imagewidth = imageheight/ratio
 
-        if imagewidth > 320:
-            diff = imagewidth - 320
-            imagewidth = imagewidth - diff
-            imageheight = ratio * imagewidth
+            if imagewidth > 320:
+                diff = imagewidth - 320
+                imagewidth = imagewidth - diff
+                imageheight = ratio * imagewidth
 
-        img = img.resize((int(imagewidth),int(imageheight)))
-        img2 = ImageTk.PhotoImage(img)
+            img = img.resize((int(imagewidth),int(imageheight)))
+            img2 = ImageTk.PhotoImage(img)
 
-        panel = Label(viewFrame3, image=img2)
-        viewFrame3.photo = img2
-        panel.pack(side="bottom",  expand="yes")
+            panel = Label(viewFrame3, image=img2)
+            viewFrame3.photo = img2
+            panel.pack(side="bottom",  expand="yes")
+        except:
+            pass
 
 
 
