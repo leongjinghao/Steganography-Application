@@ -103,7 +103,7 @@ class Steganography:
         if type(message) == int or type(message) == np.uint8:
             messageInBin = format(message, "08b")
         # else if message is in string form
-        elif type(self.message) == str:
+        elif type(message) == str:
             # convert each char in message into binary
             # concatenate all to form the message in binary
             for i in message:
@@ -111,7 +111,7 @@ class Steganography:
         # else, message is in byte
         else:
             # convert to binary, remove the leading '0b' notation which can corrupt the data
-            messageInBin = bin(int.from_bytes(self.message, byteorder='big'))[2:]
+            messageInBin = bin(int.from_bytes(message, byteorder='big'))[2:]
             # check if padding bit is required make sure payload is in full byte
             # if payload bit count is not divisible by 8, need to add padding bit
             messageInBinLen = len(messageInBin)
