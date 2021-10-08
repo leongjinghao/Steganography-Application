@@ -572,10 +572,10 @@ class GUI:
         steganography.setStegoExtractPath('decoded_file')
         steganography.setExtractFileType(fileType)
         print(fileType)
-        #try:
-        steganography.decode()
-        #except:
-            #pymsgbox.alert('The parameters that you have selected are wrong', 'Error')
+        try:
+            steganography.decode()
+        except:
+            pymsgbox.alert('The parameters that you have selected are wrong or an error occured', 'Error')
 
     def nameFilePage(self, mainGUI, payloadSelection):
         self.errorFlag = 0
