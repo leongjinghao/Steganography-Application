@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import speech_recognition as sr
 import os
 import base64
 import magic
@@ -118,27 +117,16 @@ class Steganography:
             if (messageInBinLen % 8) != 0:
                 self.paddingBitCount = 8 - (messageInBinLen % 8)
             messageInBin += '0' * self.paddingBitCount
+
+            encodingPaddingBitCount = self.messageToBinary(self.paddingBitCount)
+            #print(encodingPaddingBitCount)
+
             # append delimiter at the end
-            messageInBin += ''.join(format(ord(i), '08b') for i in '#####')
+            messageInBin += encodingPaddingBitCount +'0010001100100011001000110010001100100011'  # '#####' in binary
         return messageInBin
 
     def bitStringToBytes(self, bitString):
         return int(bitString, 2).to_bytes((len(bitString) + 7) // 8, byteorder='big')
-
-    def audioToText(self, text):
-        # showing file name
-        filename = "16-122828-0002"
-
-        # initialize the recognizer
-        r = sr.Recognizer()
-
-        # open the file
-        with sr.AudioFile(filename) as source:
-            # listen to data (load audio to memory)
-            audio_data = r.record(source)
-            # recognize (convert from speech to text)
-            text = r.recognize_google(audio_data)
-            print(text)
 
     def hideData(self):
         # copy of image, the cover
@@ -170,7 +158,6 @@ class Steganography:
             bitRange = self.bitSelect + 1
         if payloadLen > limit:
             raise Exception("Not enough bits")
-            
 
         for i in range(bitRange):
             # if mode selected is single bit replacement, change bit to be replaced to the bit selected
@@ -249,9 +236,14 @@ class Steganography:
                     base = os.path.splitext(rename_file)[0]
                     os.rename(rename_file, base + "." + extension)
                 elif self.ExtractType == "wav":
+                    #Decode padding value
+                    decodedPadding = int(self.messageToBinary(hiddenMessage[-6:-5]),2)
                     # remove delimiter and the padding bit
-                    bin_data = self.messageToBinary(hiddenMessage[:-5])[:-self.paddingBitCount]
+                    bin_data = self.messageToBinary(hiddenMessage[:-6])[:-decodedPadding]
+                    #print(bin_data)
                     wav_byte = self.bitStringToBytes(bin_data)
+
+
                     with open('extracted/audioDecoded.wav', 'wb') as wavfile:
                         wavfile.write(wav_byte)
 
@@ -263,12 +255,12 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    a = Steganography('cover/Lenna.png', 'payload/16-122828-0002.wav', 2, 7, '123test')
-    a.hideData()
-
-    a.setStegoImagePath('result/123test.png')
-    a.setStegoExtractPath('decoded')
-    a.setExtractFileType("wav")
-    a.decode()
+    # a = Steganography('cover/testocr.png', 'payload/thunder3.wav', 2, 7, '123test')
+    # a.hideData()
+    # 
+    # a.setStegoImagePath('result/123test.png')
+    # a.setStegoExtractPath('decoded')
+    # a.setExtractFileType("wav")
+    # a.decode()
 
     pass
