@@ -122,7 +122,7 @@ class Steganography:
             #print(encodingPaddingBitCount)
 
             # append delimiter at the end
-            messageInBin += encodingPaddingBitCount +'0010001100100011001000110010001100100011'  # '#####' in binary
+            messageInBin += encodingPaddingBitCount + ''.join(format(ord(i), '08b') for i in '#####')
         return messageInBin
 
     def bitStringToBytes(self, bitString):
