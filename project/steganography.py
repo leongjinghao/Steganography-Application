@@ -119,7 +119,7 @@ class Steganography:
                 self.paddingBitCount = 8 - (messageInBinLen % 8)
             messageInBin += '0' * self.paddingBitCount
             # append delimiter at the end
-            messageInBin += '0010001100100011001000110010001100100011' # '#####' in binary
+            messageInBin += ''.join(format(ord(i), '08b') for i in '#####')
         return messageInBin
 
     def bitStringToBytes(self, bitString):
