@@ -1,7 +1,7 @@
 # Steganography Program
 ## Installation guide
 cv2
-> -pip install opencv
+> -pip install opencv-python
 
 numpy
 > -pip install numpy
