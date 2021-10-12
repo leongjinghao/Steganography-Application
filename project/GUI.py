@@ -22,6 +22,7 @@ class GUI:
     selectedPayload = ""
     selectedCover = ""
     errorFlag = 0
+    allowedImg = ['png', "PNG", "jpg", "gif", "jpeg", "bmp"]
 
 
     def __init__(self):
@@ -138,7 +139,7 @@ class GUI:
 
         # Hide button
         hideButton = Button(viewFrame, text="Hide payload",
-                            command=lambda: [viewFrame.place_forget(), self.hidePage(mainGUI)])
+                            command=lambda: [viewFrame.place_forget(), self.coverSelectionPage(mainGUI)])
         hideButton.config(font=("Arial", 15))
         hideButton.place(relx=0.6, rely=0.9, relheight=0.05, relwidth=0.15)
 
@@ -175,12 +176,11 @@ class GUI:
             elif type == 4:
                 image = Image.open('extracted/'+'.'.join(tree.item(tree.selection())['values']))
                 image.show()
-
-
-
         except:
             print("Images can only be seen")
         #print(item)
+
+
 
     def uploadPage(self, mainGUI):
         uploadFrame = Frame(mainGUI, bg=self.background)
@@ -308,7 +308,6 @@ class GUI:
         except:
             print("Error deleting")
 
-
     def uploadFile(self, uploadValue):
         filelocation = askopenfilename()
         print(filelocation)
@@ -369,75 +368,79 @@ class GUI:
         for item in resultList.selection():
             resultList.selection_remove(item)
 
-    def hidePage(self, mainGUI):
-        hideFrame = Frame(mainGUI, bg=self.background)
-        hideFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
+    def SingleClick(self, event, tree, type, mainGUI):
+        if type == 1:
+            directory = 'payload/'
+        if type == 2:
+            directory = 'cover/'
+        if type == 3:
+            directory = 'result/'
 
-        title = Label(hideFrame, text="What would you like to hide?", bg=self.background)
-        title.config(font=("Arial", 20))
-        title.place(relx=0.1, rely=0, relheight=0.1, relwidth=0.8)
+        frame = Frame(mainGUI, bg=self.background)
+        frame.place(relx=0.05, rely=0.65, relheight=0.3, relwidth=0.3)
+        frame.place_forget()
+        frame.place(relx=0.05, rely=0.65, relheight=0.3, relwidth=0.3)
+        item = tree.item(tree.selection())['values']
+        #check if image
+        try:
+            if item != "":
+                for i in range(len(self.allowedImg)):
+                    if item[1] == self.allowedImg[i]:
+                        img = Image.open(directory+'.'.join(item))
+                        img2 = ImageTk.PhotoImage(img)
+                        imagewidth = img2.width()
+                        imageheight = img2.height()
 
-        # Message button
-        messageButton = Button(hideFrame, text="Message",
-                               command=lambda: [hideFrame.place_forget(), self.messagePage(mainGUI)])
-        messageButton.config(font=("Arial", 25))
-        #messageButton.place(relx=0.45, rely=0.45, relheight=0.08, relwidth=0.15)
+                        ratio = imageheight / imagewidth
 
-        # File button
-        fileButton = Button(hideFrame, text="File", command=lambda: [hideFrame.place_forget(), self.coverSelectionPage(mainGUI)])
-        fileButton.config(font=("Arial", 25))
-        fileButton.place(relx=0.45, rely=0.65, relheight=0.08, relwidth=0.15)
+                        if imageheight > 320:
+                            diff = imageheight - 320
+                            imageheight = imageheight - diff
+                            imagewidth = imageheight / ratio
 
-        # Back button
-        backButton = Button(hideFrame, text="Back", command=lambda: [hideFrame.place_forget(), self.viewPage(mainGUI)])
-        backButton.config(font=("Arial", 25))
-        backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
+                        if imagewidth > 320:
+                            diff = imagewidth - 320
+                            imagewidth = imagewidth - diff
+                            imageheight = ratio * imagewidth
+                        img = img.resize((int(imagewidth), int(imageheight)))
+                        img2 = ImageTk.PhotoImage(img)
+                        panel = Label(frame, image=img2)
+                        frame.photo = img2
+                        panel.pack(side="bottom", expand="yes")
+        except:
+            pass
 
-    def messagePage(self, mainGUI):
-        messagePageFrame = Frame(mainGUI, bg=self.background)
-        messagePageFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
 
-        self.typeFlag = "message" #Indicate that program is dealing with a message
 
-        title = Label(messagePageFrame, text="Please enter message", bg=self.background)
-        title.config(font=("Arial", 20))
-        title.place(relx=0.1, rely=0.05, relheight=0.1, relwidth=0.8)
 
-        messageParameter = StringVar()
-        nameEntered = Entry(messagePageFrame, textvariable=messageParameter)
-        nameEntered.config(font=("Arial", 15))
-        nameEntered.place(relx=0.3, rely=0.20, relheight=0.05, relwidth=0.4)
-
-        # Submit button
-        submitButton = Button(messagePageFrame, text="Submit", command=lambda: [[messagePageFrame.place_forget(),
-                                                                                 self.coverSelectionPage(mainGUI)] if messageParameter.get() != "" else [
-            self.displayError("message")]])
-        submitButton.config(font=("Arial", 25))
-        submitButton.place(relx=0.45, rely=0.65, relheight=0.08, relwidth=0.15)
-
-        # Back button
-        backButton = Button(messagePageFrame, text="Back",
-                            command=lambda: [messagePageFrame.place_forget(), self.hidePage(mainGUI)])
-        backButton.config(font=("Arial", 25))
-        backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
 
     def coverSelectionPage(self, mainGUI):
         coverSelectionFrame = Frame(mainGUI, bg=self.background)
         coverSelectionFrame.place(relx=0, rely=0, relheight=1, relwidth=1)
 
-        title = Label(coverSelectionFrame, text="Choose your cover file.", bg=self.background)
+
+        title = Label(coverSelectionFrame, text="Choose your cover file", bg=self.background)
         title.config(font=("Arial", 20))
         title.place(relx=0.1, rely=0, relheight=0.1, relwidth=0.8)
 
+        title = Label(coverSelectionFrame, text="Preview", bg=self.background)
+        title.config(font=("Arial", 20))
+        title.place(relx=0.15, rely=0.58, relheight=0.1, relwidth=0.1)
+
         item_column = ('File Name', 'File Type')
 
-        coverList = ttk.Treeview(coverSelectionFrame, columns=item_column, show='headings')
+        coverLists = ttk.Treeview(coverSelectionFrame, columns=item_column, show='headings')
         for i in range(len(item_column)):
-            coverList.heading(item_column[i], text=item_column[i])
+            coverLists.heading(item_column[i], text=item_column[i])
 
-        coverList.column(item_column[0], anchor="w")
-        coverList.column(item_column[1], anchor="n", width=10)
-        coverList.place(relx=0, rely=0.1, relheight=0.5, relwidth=1)
+
+
+        coverLists.column(item_column[0], anchor="w")
+        coverLists.column(item_column[1], anchor="n", width=10)
+
+
+        coverLists.place(relx=0, rely=0.1, relheight=0.5, relwidth=1)
+
 
         coverFiles = os.listdir('./cover')
 
@@ -445,12 +448,14 @@ class GUI:
             coverFiles[f] = coverFiles[f].split('.')
 
         for i, column in enumerate(coverFiles, start=0):
-            coverList.insert("", 0, values=(coverFiles[i]))
+            coverLists.insert("", 0, values=(coverFiles[i]))
+
+        coverLists.bind("<ButtonRelease-1>", lambda event: self.SingleClick(event, coverLists, 2, mainGUI))
 
         # Submit button
         submitButton = Button(coverSelectionFrame, text="Submit", command=lambda: [
             [coverSelectionFrame.place_forget(),
-             self.payloadSelectionPage(mainGUI, coverList.item(coverList.selection())['values'])] if coverList.item(coverList.selection())['values'] != "" else [
+             self.payloadSelectionPage(mainGUI, coverLists.item(coverLists.selection())['values'])] if coverLists.item(coverLists.selection())['values'] != "" else [
                 self.displayError("file")]])
         submitButton.config(font=("Arial", 25))
         submitButton.place(relx=0.45, rely=0.65, relheight=0.08, relwidth=0.15)
@@ -472,6 +477,10 @@ class GUI:
         title.config(font=("Arial", 20))
         title.place(relx=0.1, rely=0, relheight=0.1, relwidth=0.8)
 
+        title = Label(payloadSelectionFrame, text="Preview", bg=self.background)
+        title.config(font=("Arial", 20))
+        title.place(relx=0.15, rely=0.58, relheight=0.1, relwidth=0.1)
+
         item_column = ('File Name', 'File Type')
 
         payloadList = ttk.Treeview(payloadSelectionFrame, columns=item_column, show='headings')
@@ -489,6 +498,8 @@ class GUI:
 
         for i, column in enumerate(payloadFiles, start=0):
             payloadList.insert("", 0, values=(payloadFiles[i]))
+
+        payloadList.bind("<ButtonRelease-1>", lambda event: self.SingleClick(event, payloadList, 1, mainGUI))
 
         # Submit button
         submitButton = Button(payloadSelectionFrame, text="Submit", command=lambda: [
@@ -512,6 +523,10 @@ class GUI:
         title.config(font=("Arial", 20))
         title.place(relx=0.1, rely=0, relheight=0.1, relwidth=0.8)
 
+        title = Label(resultSelectionPage, text="Preview", bg=self.background)
+        title.config(font=("Arial", 20))
+        title.place(relx=0.15, rely=0.58, relheight=0.1, relwidth=0.1)
+
         item_column = ('File Name', 'File Type')
 
         resultList = ttk.Treeview(resultSelectionPage, columns=item_column, show='headings')
@@ -532,27 +547,33 @@ class GUI:
 
         #Single bit or multi bit
         uploadValue = StringVar(resultSelectionPage, "1")
-        Radiobutton(resultSelectionPage, text='Single-Bit mode', variable=uploadValue, value='1', background=self.background).place(relx=0.1, rely=0.7, relheight=0.05, relwidth=0.1)
-        Radiobutton(resultSelectionPage, text='Multi-Bit mode', variable=uploadValue, value='2', background=self.background).place(relx=0.2, rely=0.7, relheight=0.05, relwidth=0.1)
+        Radiobutton(resultSelectionPage, text='Single-Bit mode', variable=uploadValue, value='1', background=self.background).place(relx=0.7, rely=0.8, relheight=0.05, relwidth=0.1)
+        Radiobutton(resultSelectionPage, text='Multi-Bit mode', variable=uploadValue, value='2', background=self.background).place(relx=0.8, rely=0.8, relheight=0.05, relwidth=0.1)
 
         #txt/img/wav?
-        fileType = StringVar(resultSelectionPage, "txt")
-        Radiobutton(resultSelectionPage, text='Text', variable=fileType, value='txt', background=self.background).place(relx=0.65, rely=0.7, relheight=0.05, relwidth=0.1)
-        Radiobutton(resultSelectionPage, text='Image', variable=fileType, value='img', background=self.background).place(relx=0.75, rely=0.7, relheight=0.05, relwidth=0.1)
-        Radiobutton(resultSelectionPage, text='Audio', variable=fileType, value='wav',
-                    background=self.background).place(relx=0.85, rely=0.7, relheight=0.05, relwidth=0.1)
+        decodeValue = StringVar(resultSelectionPage)
+        decodeValue.set("txt")
+        dropdown = OptionMenu(resultSelectionPage, decodeValue, "Text file (.txt)", "Document file (.pdf/.doc/.ppt/etc.)", "Images (jpg/png/gif/etc.)", "Audio (wav)",  "Audio (mp3)")
+        dropdown.config(font=("Arial", 15))
+        dropdown.place(relx=0.65, rely=0.67, relheight=0.05, relwidth=0.3)
 
-        title = Label(resultSelectionPage, text="What type of file are you trying to extract?", bg=self.background)
-        title.config(font=("Arial", 11))
-        title.place(relx=0.65, rely=0.6, relheight=0.1, relwidth=0.3)
+        title = Label(resultSelectionPage, text="File type:", bg=self.background)
+        title.config(font=("Arial", 15))
+        title.place(relx=0.65, rely=0.6, relheight=0.05, relwidth=0.3)
+
+        title = Label(resultSelectionPage, text="Decoding parameters", bg=self.background)
+        title.config(font=("Arial", 15))
+        title.place(relx=0.65, rely=0.75, relheight=0.05, relwidth=0.3)
 
         #Item quantity scroller
         itemQuantityScroller = Scale(resultSelectionPage, from_=0, to=7, orient=HORIZONTAL, resolution = 1)
-        itemQuantityScroller.place(relx=0.1, rely=0.85, relheight=0.07, relwidth=0.3)
+        itemQuantityScroller.place(relx=0.65, rely=0.85, relheight=0.07, relwidth=0.3)
+
+        resultList.bind("<ButtonRelease-1>", lambda event: self.SingleClick(event, resultList, 3, mainGUI))
 
         # Submit button
         submitButton = Button(resultSelectionPage, text="Submit", command=lambda: [
-            [resultSelectionPage.place_forget(), self.extractData(uploadValue.get(), itemQuantityScroller.get(), fileType.get(), ".".join(resultList.item(resultList.selection())['values']))
+            [resultSelectionPage.place_forget(), self.extractData(uploadValue.get(), itemQuantityScroller.get(), decodeValue.get(), ".".join(resultList.item(resultList.selection())['values']))
              ,self.viewPage(mainGUI)] if resultList.item(resultList.selection())['values'] != "" else [
                 self.displayError("file")]])
         submitButton.config(font=("Arial", 25))
@@ -565,6 +586,17 @@ class GUI:
         backButton.place(relx=0.45, rely=0.85, relheight=0.08, relwidth=0.15)
 
     def extractData(self, mode, bitSelect, fileType, name):
+        if fileType == 'Text file (.txt)':
+            fileType = 'txt'
+        elif fileType == 'Document file (.pdf/.doc/.ppt/etc.)':
+            fileType = 'img'
+        elif fileType == 'Images (jpg/png/gif/etc.)':
+            fileType = 'img'
+        elif fileType == 'Audio (wav)':
+            fileType = 'wav'
+        elif fileType == 'Audio (mp3)':
+            fileType = 'img'
+
         print(mode,bitSelect)
         print(name)
         steganography = Steganography("", "", int(mode), int(bitSelect), "")
@@ -573,9 +605,13 @@ class GUI:
         steganography.setExtractFileType(fileType)
         print(fileType)
         try:
+            dir = './extracted'
+            for f in os.listdir(dir):
+                os.remove(os.path.join(dir, f))
             steganography.decode()
         except:
-            pymsgbox.alert('The parameters that you have selected are wrong or an error occured', 'Error')
+
+            pymsgbox.alert('The parameters that you have selected are wrong', 'Error')
 
     def nameFilePage(self, mainGUI, payloadSelection):
         self.errorFlag = 0
@@ -630,7 +666,7 @@ class GUI:
         except:
             self.errorFlag = 1
             print("error flag triggered")
-            pymsgbox.alert("Not enough space, increase the number of bits", 'Error')
+            pymsgbox.alert("Payload is too big", 'Error')
 
 
     def displayError(self, type):
@@ -645,7 +681,7 @@ class GUI:
 
     def displayHide(self, result, mainGUI):
 
-        allowedImg = ['png',"PNG","jpg","gif","jpeg"]
+
 
 
 
@@ -713,8 +749,8 @@ class GUI:
         viewFrame.photo = img2
         panel.pack(side="bottom",  expand="yes")
 
-        for i in range(len(allowedImg)):
-            if self.selectedPayload.split('.')[-1] == allowedImg[i]:
+        for i in range(len(self.allowedImg)):
+            if self.selectedPayload.split('.')[-1] == self.allowedImg[i]:
                 # Result part --------------------------------------------------------------
                 img = Image.open("payload/" + self.selectedPayload)
 
