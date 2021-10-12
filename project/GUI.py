@@ -596,7 +596,7 @@ class GUI:
             fileType = 'wav'
         elif fileType == 'Audio (mp3)':
             fileType = 'img'
-        elif fileType == 'Audio (mp4)':
+        elif fileType == 'Video (mp4)':
             fileType = 'img'
 
         print(mode,bitSelect)
