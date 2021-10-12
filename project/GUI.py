@@ -553,7 +553,7 @@ class GUI:
         #txt/img/wav?
         decodeValue = StringVar(resultSelectionPage)
         decodeValue.set("txt")
-        dropdown = OptionMenu(resultSelectionPage, decodeValue, "Text file (.txt)", "Document file (.pdf/.doc/.ppt/etc.)", "Images (jpg/png/gif/etc.)", "Audio (wav)",  "Audio (mp3)")
+        dropdown = OptionMenu(resultSelectionPage, decodeValue, "Text file (.txt)", "Document file (.pdf/.doc/.ppt/etc.)", "Images (jpg/png/gif/etc.)", "Audio (wav)",  "Audio (mp3)", "Video (mp4)")
         dropdown.config(font=("Arial", 15))
         dropdown.place(relx=0.65, rely=0.67, relheight=0.05, relwidth=0.3)
 
@@ -595,6 +595,8 @@ class GUI:
         elif fileType == 'Audio (wav)':
             fileType = 'wav'
         elif fileType == 'Audio (mp3)':
+            fileType = 'img'
+        elif fileType == 'Audio (mp4)':
             fileType = 'img'
 
         print(mode,bitSelect)
