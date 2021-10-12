@@ -3,13 +3,11 @@ from tkinter.filedialog import askopenfilename
 from tkinter import ttk
 import shutil
 import os
-import ctypes
-import glob
 from PIL import Image, ImageTk, ImageOps
-import cv2, numpy as np
 from steganography import Steganography
 import pymsgbox  # pip install PyMsgBox
 from PIL import Image
+
 
 
 class GUI:
@@ -163,22 +161,16 @@ class GUI:
 
     "Double click function"
     def DoubleClick(self, event, tree, type):
-        try:
+        # try:
             if type == 1:
-                image = Image.open('payload/'+'.'.join(tree.item(tree.selection())['values']))
-                image.show()
+                os.system("start payload/"+".".join(tree.item(tree.selection())['values']))
             elif type == 2:
-                image = Image.open('cover/'+'.'.join(tree.item(tree.selection())['values']))
-                image.show()
+                os.system("start cover/"+".".join(tree.item(tree.selection())['values']))
             elif type == 3:
-                image = Image.open(str('result/'+'.'.join(tree.item(tree.selection())['values'])))
-                image.show()
+                os.system("start result/"+".".join(tree.item(tree.selection())['values']))
             elif type == 4:
-                image = Image.open('extracted/'+'.'.join(tree.item(tree.selection())['values']))
-                image.show()
-        except:
-            print("Images can only be seen")
-        #print(item)
+                os.system("start extracted/"+".".join(tree.item(tree.selection())['values']))
+
 
 
 
