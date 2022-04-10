@@ -255,7 +255,7 @@ class Steganography:
 if __name__ == '__main__':
     # mode: 1. change single bit, 2. multiple bit replacement
     # bitSelect: 0 to 7
-    # a = Steganography('cover/testocr.png', 'payload/thunder3.wav', 2, 7, '123test')
+    # a = Steganography('cover/Lenna.png', 'payload/16-122828-0002.wav', 2, 7, '123test')
     # a.hideData()
     # 
     # a.setStegoImagePath('result/123test.png')
